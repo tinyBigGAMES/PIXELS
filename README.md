@@ -2,14 +2,14 @@
 [![Chat on Discord](https://img.shields.io/discord/754884471324672040?style=for-the-badge)](https://discord.gg/tPWjMwK)
 [![Follow on Bluesky](https://img.shields.io/badge/Bluesky-tinyBigGAMES-blue?style=for-the-badge&logo=bluesky)](https://bsky.app/profile/tinybiggames.com)    
 
-**PIXELS** is a lightweight and powerful 2D game development framework designed specifically for Delphi developers. Built on top of the proven and battle-tested [SFML (Simple and Fast Multimedia Library)](https://www.sfml-dev.org/), PIXELS brings modern game development capabilities into the Delphi ecosystem with clean, easy-to-use APIs and high performance.
+**PIXELS** is a lightweight and powerful 2D game development framework designed specifically for Delphi developers. Built on top of the proven and battle-tested [Allegro Library](https://github.com/liballeg/allegro5), PIXELS brings modern game development capabilities into the Delphi ecosystem with clean, easy-to-use APIs and high performance.
 
 Whether you're building classic arcade games, stylish pixel art adventures, or rich interactive applications, PIXELS gives you the foundation you need — fast graphics, smooth input handling, audio playback, asset management, and more — all fully native to Delphi.
 
 ## ✨ Features
 
 - **Fully Delphi-native**: Designed for Delphi developers, by Delphi developers.
-- **Powered by SFML**: Leverages the robust SFML library for graphics, audio, input, and window management.
+- **Powered by Allegro**: Leverages the robust Allegro library for graphics, audio, input, window management and more.
 - **Simple, Clean API**: Easy-to-understand object-oriented design that feels natural in Delphi.
 - **Cross-Platform Ready**: Windows out of the box; groundwork in place for future cross-platform expansion.
 - **Fast 2D Rendering**: Hardware-accelerated graphics for smooth frame rates.
