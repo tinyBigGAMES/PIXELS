@@ -54,7 +54,7 @@ See the [📜 LICENSE](https://github.com/tinyBigGAMES/PIXELS?tab=BSD-3-Clause-1
 
 ---
 
-**PIXELS** — Bring your 2D game ideas to life with Delphi power and SFML performance.
+**PIXELS** — Bring your 2D game ideas to life with Delphi power and Allegro performance.
 
 <p align="center">
 <img src="media/delphi.png" alt="Delphi">
