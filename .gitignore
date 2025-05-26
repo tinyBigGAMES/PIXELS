@@ -79,3 +79,11 @@ __recovery/
 
 # Boss dependency manager vendor folder https://github.com/HashLoad/boss
 modules/
+bin/Data.zip
+*.dsv
+bin/image-fullscreen.png
+bin/image-non-fullscreen.png
+bin/image1.png
+bin/image2.png
+zip_latest_commit.cmd
+PIXELS-main.zip
