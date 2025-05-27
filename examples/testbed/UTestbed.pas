@@ -44,77 +44,63 @@ unit UTestbed;
 
 interface
 
-uses
-  WinApi.Windows,
-  System.Types,
-  System.SysUtils,
-  System.StrUtils,
-  System.IOUtils,
-  System.Classes,
-  System.Math,
-  PIXELS.Deps,
-  PIXELS.Console,
-  PIXELS.Graphics,
-  PIXELS.IO,
-  PIXELS.Audio,
-  PIXELS.Game,
-  PIXELS,
-  UMisc,
-  UParticleUniverse,
-  UPlasmaFire,
-  UStarfield,
-  UDefender,
-  UAsteroids;
-
 procedure RunTests();
 
 implementation
 
-procedure Pause();
-begin
-  writeln;
-  write('Press ENTER to continue...');
-  readln;
-  writeln;
-end;
-
-procedure Test01();
-begin
-  if TpxFile.BuildZip('Data.zip', 'res',
-    procedure (const AFilename: string; const AProgress: Integer; const ANewFile: Boolean; const AUserData: Pointer)
-    begin
-      if aNewFile then TpxConsole.PrintLn();
-      TpxConsole.SetForegroundColor(pxGREEN);
-      TpxConsole.Print(pxCR+'Adding %s(%d%%)...', [TPath.GetFileName(AFilename), aProgress]);
-    end) then
-    TpxConsole.PrintLn(pxCSIFGCyan+pxCRLF+'Success!')
-  else
-    TpxConsole.PrintLn(pxCSIFGRed+pxCRLF+'Failed!');
-end;
+uses
+  PIXELS.Utils,
+  PIXELS.Console,
+  PIXELS.Game,
+  PIXELS.Graphics,
+  PIXELS,
+  UBuildZipDemo,
+  UTextureParallaxDemo,
+  UParticleUniverseDemo,
+  UPlasmaFireDemo,
+  UStarfieldDemo,
+  UDefenderDemo,
+  UAsteroidsDemo,
+  UTextureTintShaderDemo,
+  UMenu;
 
 procedure RunTests();
 var
-  LNum: Integer;
+  LMenu: TMenu;
+  LSelectedGame: TpxGameClass;
 begin
-  TpxConsole.ClearScreen();
-  TpxConsole.SetForegroundColor(pxDARKKHAKI);
-  TPixels.PrintAsciiLogo();
-  TpxConsole.SetForegroundColor(pxWHITE);
-  TpxConsole.PrintLn('        Version %s', [TPixels.GetVersion()], False);
+  LMenu := TMenu.Create();
+  try
+    LMenu.AddItem(TBuildZipDemo, 'Build Zip Demo <<--- RUN FIRST');
+    LMenu.AddItem(TParticleUniverseDemo, 'Particle Universe Demo');
+    LMenu.AddItem(TPlasmaFireDemo, 'Plasma Fire Demo');
+    LMenu.AddItem(TStarfieldDemo, 'Starfield Demo');
+    LMenu.AddItem(TDefenderDemo, 'Defender Demo');
+    LMenu.AddItem(TAsteroidsDemo, 'Asteroids Demo');
+    LMenu.AddItem(TTextureParallaxDemo, 'Texture Parallax Demo');
+    LMenu.AddItem(TTextureTintShaderDemo, 'Texture Tint Shader Demo');
 
-  LNum := 01;
+    repeat
+      TpxConsole.ClearScreen();
+      TpxConsole.SetForegroundColor(pxDARKKHAKI);
+      TPixels.PrintAsciiLogo();
+      TpxConsole.SetForegroundColor(pxWHITE);
+      TpxConsole.PrintLn('        Version %s', [TPixels.GetVersion()], False);
+      TpxConsole.PrintLn();
 
-  case LNum of
-    01: Test01();
-    02: pxRunGame(TParticleUniverse);
-    03: pxRunGame(TPlasmaFire);
-    04: pxrunGame(TStarfield);
-    05: pxRunGame(TDefender);
-    06: pxRunGame(TAsteroids);
-    07: pxRunGame(TTest01);
+      // Show menu and get selection
+      LSelectedGame := LMenu.Run();
+
+     if LSelectedGame <> nil then
+     begin
+       pxRunGame(LSelectedGame);
+     end;
+
+    until LSelectedGame = nil;
+
+  finally
+    LMenu.Free();
   end;
-
-  TpxConsole.Pause();
 end;
 
 end.

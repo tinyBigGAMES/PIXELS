@@ -1,110 +1,95 @@
 ﻿(******************************************************************************
-  PIXELS Asteroids Demo
-  Advanced 2D space shooter demonstrating particle systems, real-time rendering, and visual effects*
+  PIXELS Asteroids Demo - Enhanced Bloom Effects
+  Advanced 2D graphics demonstration featuring multi-pass post-processing
 
-  OVERVIEW:
-  This advanced demonstration showcases sophisticated 2D graphics programming using the PIXELS
-  Game Library. The demo implements a complete asteroids-style game featuring multi-colored
-  starfields, particle-based visual effects, real-time collision detection, and optimized
-  rendering techniques. Designed for intermediate to advanced developers studying game
-  architecture, graphics programming, and performance optimization in Pascal/Delphi.
+  This comprehensive demo showcases sophisticated real-time graphics techniques
+  including HDR bloom rendering, custom GLSL shader programming, and optimized
+  texture-based object rendering within a classic Asteroids game framework.
+  Demonstrates professional-grade visual effects programming suitable for
+  modern 2D game development and graphics programming education.
 
   TECHNICAL COMPLEXITY: Advanced
-  TARGET AUDIENCE: Game developers, graphics programmers, PIXELS library users
+
+  OVERVIEW:
+  This demo implements a fully-featured Asteroids game while demonstrating
+  advanced bloom post-processing techniques. The primary focus is on teaching
+  multi-pass rendering, HDR effects, and shader-based visual enhancement.
+  Unlike basic sprite-based games, this demo uses procedural geometry rendering
+  combined with sophisticated post-processing to achieve cinematic visual quality.
+  Target audience includes intermediate to advanced graphics programmers seeking
+  to understand modern 2D rendering pipelines and real-time post-processing.
 
   TECHNICAL IMPLEMENTATION:
-  - Core Architecture: Deterministic game loop locked at 60 FPS (16.67ms frame time)
-  - Coordinate System: Screen-space coordinates (800x600) with screen-wrapping at boundaries
-  - Memory Management: Object pooling for bullets (15), asteroids (20), particles (200)
-  - Data Structures: Static arrays for performance, record types for game objects
-  - Physics Model: Newtonian mechanics with velocity/acceleration integration
-  - Collision Detection:** Circle-to-circle using distance formula: √((x₂-x₁)² + (y₂-y₁)²) < (r₁+r₂)
+  - Multi-pass bloom pipeline with configurable parameters
+  - Custom GLSL shader system (bright pass, Gaussian blur, combine)
+  - Texture-based object pre-rendering for performance optimization
+  - Deterministic 60 FPS game loop with fixed timestep physics
+  - Dynamic particle system with alpha blending and lifecycle management
+  - Procedural asteroid generation with randomized geometry points
+  - Screen-space effects (shake, flash) with temporal decay functions
+  - Wrap-around coordinate system with boundary detection
+  - Collision detection using circle-circle intersection algorithms
+  - Memory-efficient object pooling for bullets, asteroids, and particles
 
   FEATURES DEMONSTRATED:
-  • Multi-colored starfield with 8 astronomically-accurate star color types
-  • Real-time particle system with 200+ simultaneous particles
-  • Pre-rendered texture caching for optimal performance
-  • Additive alpha blending for authentic glow effects
-  • Screen shake and flash feedback systems
-  • Procedural asteroid generation with randomized vertices
-  • Vector-based physics with thrust, friction, and momentum
-  • Multi-layered rendering pipeline with bloom post-processing
-  • Object lifecycle management and pooling strategies
+  • Multi-target rendering with render-to-texture operations
+  • HDR bloom with separable Gaussian blur (5-tap kernel weights)
+  • Custom GLSL shader compilation and uniform parameter binding
+  • Texture atlas generation and pre-rendered object optimization
+  • Real-time particle systems with physics simulation
+  • Procedural shape generation with controlled randomization
+  • Advanced blending modes (additive, alpha, multiplicative)
+  • Screen-space visual effects with parametric control
+  • Performance-oriented object pooling and memory management
+  • Input-responsive visual parameter adjustment for live tuning
 
   RENDERING TECHNIQUES:
-  - Multi-Pass Rendering: Glow layer (additive) + main objects (alpha blend)
-  - Texture Pre-rendering: All game objects rendered once to textures at startup
-  - Blending Modes: pxAdditiveAlphaBlendMode for bloom, default alpha for solids
-  - Layering System: Stars → Asteroids → Ship → Bullets → Particles → UI
-  - Performance Optimization: Single texture per object type, batch rendering
+  The demo employs a sophisticated 4-pass rendering pipeline:
+  Pass 1: Scene rendering to primary texture buffer
+  Pass 2: Bright-pass extraction (luminance threshold: 0.8 default)
+  Pass 3: Separable Gaussian blur (5-tap weights: 0.227027, 0.1945946, etc.)
+  Pass 4: Final composite with adjustable bloom intensity (1.2 default)
+  Uses additive blending for bloom accumulation and linear interpolation
+  for smooth visual effects. All rendering optimized for 60 FPS performance.
 
   CONTROLS:
-  • WASD / Arrow Keys: Ship rotation (300°/sec) and thrust (300 units/sec²)
-  • SPACE / S: Fire bullets (400 units/sec velocity, 0.2sec cooldown)
-  • F11: Toggle fullscreen mode
-  • R: Restart game (when game over)
-  • ESC: Exit application
+  WASD/Arrow Keys - Ship movement and rotation (300°/sec rotation speed)
+  SPACE/S - Fire bullets (0.2 second cooldown, 400 pixel/sec velocity)
+  1/2 - Adjust bloom threshold (±0.1, range: 0.0-1.0)
+  3/4 - Adjust bloom intensity (±0.1, range: 0.0-3.0)
+  5/6 - Adjust bloom radius (±0.5, range: 0.5-5.0)
+  F11 - Toggle fullscreen mode
+  R - Restart game (when game over)
+  ESC - Exit application
 
-  **MATHEMATICAL FOUNDATION:**
-  ```pascal
-  // Thrust calculation using precomputed sin/cos tables
-  LThrustDir.x := TpxMath.AngleCos(Round(LShip.Angle)) * LThrustPower * ADelta;
-  LThrustDir.y := TpxMath.AngleSin(Round(LShip.Angle)) * LThrustPower * ADelta;
-
-  // Circle collision detection
-  function CircleCollision(APos1, APos2: TpxVector; ARadius1, ARadius2: Single): Boolean;
-    LDistance := APos1.Distance(APos2);  // √((x₂-x₁)² + (y₂-y₁)²)
-    Result := LDistance < (ARadius1 + ARadius2);
-
-  // Screen wrapping with boundary conditions
-  if APosition.x < 0 then APosition.x := ScreenWidth
-  else if APosition.x > ScreenWidth then APosition.x := 0;
-
-  // Star color assignment (deterministic distribution)
-  LColorIndex := LI mod Length(CStarColors);  // Cycles through 8 colors
-  ```
+  MATHEMATICAL FOUNDATION:
+  Bloom bright-pass uses luminance calculation: dot(color.rgb, vec3(0.2126, 0.7152, 0.0722))
+  Gaussian blur implements separable convolution with normalized weights
+  Ship physics: velocity += thrust_direction * 300 * delta_time
+  Collision detection: distance(pos1, pos2) < (radius1 + radius2)
+  Angle normalization: ClipValueFloat(angle, 0, 360, wrap=true)
+  Particle lifecycle: alpha = remaining_life / max_life
+  Screen shake decay: intensity -= delta_time * 3.0
 
   PERFORMANCE CHARACTERISTICS:
-  - Target Frame Rate: 60 FPS (locked, deterministic timing)
-  - Object Limits: 20 asteroids, 15 bullets, 200 particles, 100 stars
-  - Memory Usage: ~2MB texture cache, minimal GC pressure via object pooling
-  - Rendering Calls: <50 draw calls per frame through texture batching
-  - CPU Utilization: <5% on modern hardware via optimized collision broad-phase
-
-  RENDERING PIPELINE:
-  1. Clear screen buffer (pxBLACK)
-  2. Render starfield with per-star color modulation
-  3. Enable additive blending (pxAdditiveAlphaBlendMode)
-  4. Render glow textures for all objects
-  5. Restore default blending
-  6. Render solid object textures
-  7. Render UI overlay (HUD elements)
+  Target: 60 FPS locked timestep (16.67ms frame budget)
+  Object limits: 20 asteroids, 15 bullets, 200 particles maximum
+  Texture memory: ~2MB for pre-rendered objects and bloom buffers
+  Shader complexity: 4 vertex + 4 fragment shaders compiled at startup
+  Fill rate: 4x overdraw for bloom passes, optimized with texture caching
+  CPU usage: <5% on modern hardware due to GPU-accelerated post-processing
 
   EDUCATIONAL VALUE:
-  Core Concepts Demonstrated:
-  - Advanced 2D graphics programming patterns
-  - Real-time particle system architecture
-  - Performance-critical game loop design
-  - Vector mathematics in game physics
-  - Texture management and optimization strategies
-  - Multi-pass rendering with blending modes
-  - Deterministic game state management
-
-  Transferable Skills:
-  - Object pooling for memory efficiency
-  - Precomputed lookup tables (sin/cos) for performance
-  - Separation of update/render phases for clean architecture
-  - Visual feedback systems (screen shake, particle effects)
-  - Coordinate system transformations and screen wrapping
-  - Real-time collision detection optimization techniques
-
-  Progression Path: This demo bridges intermediate vector math concepts with advanced
-  rendering techniques, making it ideal for developers transitioning from basic 2D graphics
-  to production-quality game systems. The modular design allows for easy feature extraction
-  and integration into larger projects.
+  Developers studying this demo will learn essential modern 2D graphics techniques:
+  advanced shader programming, multi-pass rendering architectures, HDR and bloom
+  implementation, texture optimization strategies, and real-time visual effects.
+  Concepts are directly transferable to 3D engines, mobile graphics optimization,
+  and professional game development. Progression from basic geometry rendering
+  to sophisticated post-processing demonstrates industry-standard graphics
+  programming practices suitable for commercial game development.
 ******************************************************************************)
 
-unit UAsteroids;
+unit UAsteroidsDemo;
 
 interface
 
@@ -123,6 +108,9 @@ const
   CMaxAsteroids = 20;
   CMaxBullets = 15;
   CMaxParticles = 200;
+
+  // Bloom settings
+  CBloomPasses = 1;
 
   // Star colors for variety - representing different star types
   CStarColors: array[0..7] of TpxColor = (
@@ -182,8 +170,8 @@ type
     Active: Boolean;
   end;
 
-  { TAsteroids }
-  TAsteroids = class(TpxGame)
+  { TAsteroidsDemo }
+  TAsteroidsDemo = class(TpxGame)
   private
     LFont: TpxFont;
     LScreenSize: TpxSize;
@@ -198,8 +186,23 @@ type
     LParticleTexture: TpxTexture;
     LStarTexture: TpxTexture;
 
-    // Render targets for post-processing
+    // Bloom render targets and shaders
     LSceneTexture: TpxTexture;
+    LBrightTexture: TpxTexture;
+    LBloomTextures: array[0..CBloomPasses-1] of TpxTexture;
+    LBlurTextures: array[0..CBloomPasses-1] of TpxTexture;
+    LBloomAccumTexture: TpxTexture;
+
+    // Bloom shaders
+    LBrightPassShader: TpxShader;
+    LBlurHorizontalShader: TpxShader;
+    LBlurVerticalShader: TpxShader;
+    LCombineShader: TpxShader;
+
+    // Bloom parameters
+    LBloomThreshold: Single;
+    LBloomIntensity: Single;
+    LBloomRadius: Single;
 
     LShip: TShip;
     LAsteroids: array[0..CMaxAsteroids-1] of TAsteroid;
@@ -215,7 +218,6 @@ type
     // Visual effects
     LShakeIntensity: Single;
     LFlashIntensity: Single;
-    LBloomIntensity: Single;
     LDistortionAmount: Single;
 
     LStars: array[0..99] of TpxVector;
@@ -227,6 +229,15 @@ type
     procedure CreateBulletTextures();
     procedure CreateParticleTextures();
     procedure CreateStarTextures();
+
+    // Bloom system
+    procedure CreateBloomResources();
+    procedure CreateBloomShaders();
+    procedure DestroyBloomResources();
+
+    procedure RenderSceneToTexture();
+    procedure ApplyBloomEffect();
+    procedure RenderFullscreenQuad(const ATexture: TpxTexture);
 
     procedure ResetShip();
     procedure CreateAsteroid(const APosition: TpxVector; const ASize: TAsteroidSize; const AVelocity: TpxVector);
@@ -273,7 +284,8 @@ type
 
 implementation
 
-function TAsteroids.OnStartup(): Boolean;
+{ TAsteroidsDemo }
+function TAsteroidsDemo.OnStartup(): Boolean;
 var
   LI: Integer;
 begin
@@ -286,12 +298,16 @@ begin
   LFont := TpxFont.Create();
   LFont.LoadDefault(12);
 
+  // Initialize bloom parameters
+  LBloomThreshold := 0.8;
+  LBloomIntensity := 1.2;
+  LBloomRadius := 2.0;
+
   // Create all object textures ONCE at startup
   CreateObjectTextures();
 
-  // Create render target for post-processing
-  LSceneTexture := TpxTexture.Create();
-  LSceneTexture.Alloc(Round(LScreenSize.w), Round(LScreenSize.h), pxBLACK, pxHDTexture);
+  // Create bloom resources and shaders
+  CreateBloomResources();
 
   // Initialize starfield
   for LI := 0 to High(LStars) do
@@ -306,7 +322,290 @@ begin
   Result := True;
 end;
 
-procedure TAsteroids.CreateObjectTextures();
+procedure TAsteroidsDemo.CreateBloomResources();
+var
+  LI: Integer;
+  LWidth: Integer;
+  LHeight: Integer;
+begin
+  LWidth := Round(LScreenSize.w);
+  LHeight := Round(LScreenSize.h);
+
+  // Create main scene render target
+  LSceneTexture := TpxTexture.Create();
+  LSceneTexture.Alloc(LWidth, LHeight, pxBLACK, pxHDTexture);
+
+  // Create bright pass texture
+  LBrightTexture := TpxTexture.Create();
+  LBrightTexture.Alloc(LWidth, LHeight, pxBLACK, pxHDTexture);
+
+  // Create bloom textures with progressive downsampling
+  for LI := 0 to CBloomPasses - 1 do
+  begin
+    LWidth := LWidth;
+    LHeight := LHeight;
+
+    if LWidth < 8 then LWidth := 8;
+    if LHeight < 8 then LHeight := 8;
+
+    LBloomTextures[LI] := TpxTexture.Create();
+    LBloomTextures[LI].Alloc(LWidth, LHeight, pxBLACK, pxHDTexture);
+
+    LBlurTextures[LI] := TpxTexture.Create();
+    LBlurTextures[LI].Alloc(LWidth, LHeight, pxBLACK, pxHDTexture);
+
+    LBloomAccumTexture := TpxTexture.Create();
+    LBloomAccumTexture.Alloc(Round(LScreenSize.w), Round(LScreenSize.h), pxBLACK, pxHDTexture);
+  end;
+
+  CreateBloomShaders();
+end;
+
+procedure TAsteroidsDemo.CreateBloomShaders();
+var
+  LBrightPassVS: string;
+  LBrightPassFS: string;
+  LBlurVS: string;
+  LBlurHorizontalFS: string;
+  LBlurVerticalFS: string;
+  LCombineVS: string;
+  LCombineFS: string;
+begin
+  // Vertex shader (same for all passes)
+  LBrightPassVS :=
+    '#version 130' + #13#10 +
+    'in vec4 al_pos;' + #13#10 +
+    'in vec2 al_texcoord;' + #13#10 +
+    'out vec2 texCoord;' + #13#10 +
+    'uniform mat4 al_projview_matrix;' + #13#10 +
+    'void main() {' + #13#10 +
+    '    gl_Position = al_projview_matrix * al_pos;' + #13#10 +
+    '    texCoord = al_texcoord;' + #13#10 +
+    '}';
+
+  // Bright pass fragment shader
+  LBrightPassFS :=
+    '#version 130' + #13#10 +
+    'in vec2 texCoord;' + #13#10 +
+    'out vec4 FragColor;' + #13#10 +
+    'uniform sampler2D sceneTexture;' + #13#10 +
+    'uniform float bloomThreshold;' + #13#10 +
+    'void main() {' + #13#10 +
+    '    vec4 color = texture(sceneTexture, texCoord);' + #13#10 +
+    '    float brightness = dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));' + #13#10 +
+    '    if (brightness > bloomThreshold) {' + #13#10 +
+    '        FragColor = vec4(color.rgb, 1.0);' + #13#10 +
+    '    } else {' + #13#10 +
+    '        FragColor = vec4(0.0, 0.0, 0.0, 1.0);' + #13#10 +
+    '    }' + #13#10 +
+    '}';
+
+  // Blur vertex shader
+  LBlurVS := LBrightPassVS;
+
+  // Horizontal blur fragment shader
+  LBlurHorizontalFS :=
+    '#version 130' + #13#10 +
+    'in vec2 texCoord;' + #13#10 +
+    'out vec4 FragColor;' + #13#10 +
+    'uniform sampler2D inputTexture;' + #13#10 +
+    'uniform float texelSize;' + #13#10 +
+    'uniform float blurRadius;' + #13#10 +
+    'void main() {' + #13#10 +
+    '    vec4 result = vec4(0.0);' + #13#10 +
+    '    float weights[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);' + #13#10 +
+    '    result += texture(inputTexture, texCoord) * weights[0];' + #13#10 +
+    '    for (int i = 1; i < 5; ++i) {' + #13#10 +
+    '        float offset = float(i) * texelSize * blurRadius;' + #13#10 +
+    '        result += texture(inputTexture, texCoord + vec2(offset, 0.0)) * weights[i];' + #13#10 +
+    '        result += texture(inputTexture, texCoord - vec2(offset, 0.0)) * weights[i];' + #13#10 +
+    '    }' + #13#10 +
+    '    FragColor = result;' + #13#10 +
+    '}';
+
+  // Vertical blur fragment shader
+  LBlurVerticalFS :=
+    '#version 130' + #13#10 +
+    'in vec2 texCoord;' + #13#10 +
+    'out vec4 FragColor;' + #13#10 +
+    'uniform sampler2D inputTexture;' + #13#10 +
+    'uniform float texelSize;' + #13#10 +
+    'uniform float blurRadius;' + #13#10 +
+    'void main() {' + #13#10 +
+    '    vec4 result = vec4(0.0);' + #13#10 +
+    '    float weights[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);' + #13#10 +
+    '    result += texture(inputTexture, texCoord) * weights[0];' + #13#10 +
+    '    for (int i = 1; i < 5; ++i) {' + #13#10 +
+    '        float offset = float(i) * texelSize * blurRadius;' + #13#10 +
+    '        result += texture(inputTexture, texCoord + vec2(0.0, offset)) * weights[i];' + #13#10 +
+    '        result += texture(inputTexture, texCoord - vec2(0.0, offset)) * weights[i];' + #13#10 +
+    '    }' + #13#10 +
+    '    FragColor = result;' + #13#10 +
+    '}';
+
+  // Combine vertex shader
+  LCombineVS := LBrightPassVS;
+
+  // Combine fragment shader
+  LCombineFS :=
+    '#version 130' + #13#10 +
+    'in vec2 texCoord;' + #13#10 +
+    'out vec4 FragColor;' + #13#10 +
+    'uniform sampler2D sceneTexture;' + #13#10 +
+    'uniform sampler2D bloomTexture;' + #13#10 +
+    'uniform float bloomIntensity;' + #13#10 +
+    'void main() {' + #13#10 +
+    '    vec4 sceneColor = texture(sceneTexture, texCoord);' + #13#10 +
+    '    vec4 bloomColor = texture(bloomTexture, texCoord);' + #13#10 +
+    '    FragColor = sceneColor + (bloomColor * bloomIntensity);' + #13#10 +
+    '}';
+
+  // Create and build shaders
+  LBrightPassShader := TpxShader.Create();
+  LBrightPassShader.Load(pxVertexShader, LBrightPassVS);
+  LBrightPassShader.Load(pxPixelShader, LBrightPassFS);
+  LBrightPassShader.Build();
+
+  LBlurHorizontalShader := TpxShader.Create();
+  LBlurHorizontalShader.Load(pxVertexShader, LBlurVS);
+  LBlurHorizontalShader.Load(pxPixelShader, LBlurHorizontalFS);
+  LBlurHorizontalShader.Build();
+
+  LBlurVerticalShader := TpxShader.Create();
+  LBlurVerticalShader.Load(pxVertexShader, LBlurVS);
+  LBlurVerticalShader.Load(pxPixelShader, LBlurVerticalFS);
+  LBlurVerticalShader.Build();
+
+  LCombineShader := TpxShader.Create();
+  LCombineShader.Load(pxVertexShader, LCombineVS);
+  LCombineShader.Load(pxPixelShader, LCombineFS);
+  LCombineShader.Build();
+end;
+
+procedure TAsteroidsDemo.DestroyBloomResources();
+var
+  LI: Integer;
+begin
+  LCombineShader.Free();
+  LBlurVerticalShader.Free();
+  LBlurHorizontalShader.Free();
+  LBrightPassShader.Free();
+
+  for LI := 0 to CBloomPasses - 1 do
+  begin
+    LBlurTextures[LI].Free();
+    LBloomTextures[LI].Free();
+  end;
+
+  LBrightTexture.Free();
+  LSceneTexture.Free();
+  LBloomAccumTexture.Free();
+end;
+
+
+procedure TAsteroidsDemo.RenderSceneToTexture();
+begin
+  // Set scene texture as render target
+  LSceneTexture.SetAsRenderTarget();
+  LSceneTexture.Clear(pxBLACK);
+
+  // Render all game objects to scene texture
+  DrawStarField();
+  DrawShip();
+  DrawAsteroids();
+  DrawBullets();
+  DrawParticles();
+
+  LSceneTexture.UnsetAsRenderTarget();
+end;
+
+procedure TAsteroidsDemo.ApplyBloomEffect();
+var
+  LI: Integer;
+  LTexelSize: Single;
+begin
+  // Step 1: Extract bright pixels
+  LBrightTexture.SetAsRenderTarget();
+  LBrightTexture.Clear(pxBLACK);
+
+  LBrightPassShader.Enable(True);
+  LBrightPassShader.SetTextureUniform('sceneTexture', LSceneTexture, 0);
+  LBrightPassShader.SetFloatUniform('bloomThreshold', LBloomThreshold);
+
+  RenderFullscreenQuad(LSceneTexture);
+  LBrightPassShader.Enable(False);
+  LBrightTexture.UnsetAsRenderTarget();
+
+  // Step 2: Downsample and blur
+  // First pass uses bright texture
+  LBloomTextures[0].SetAsRenderTarget();
+  RenderFullscreenQuad(LBrightTexture);
+  LBloomTextures[0].UnsetAsRenderTarget();
+
+  // Subsequent passes downsample previous results
+  for LI := 1 to CBloomPasses - 1 do
+
+  begin
+    LBloomTextures[LI].SetAsRenderTarget();
+    RenderFullscreenQuad(LBloomTextures[LI - 1]);
+    LBloomTextures[LI].UnsetAsRenderTarget();
+  end;
+
+  // Step 3: Apply blur passes
+  for LI := 0 to CBloomPasses - 1 do
+  begin
+    LTexelSize := 1.0 / (LBloomTextures[LI].GetSize().w);
+
+    // Horizontal blur
+    LBlurTextures[LI].SetAsRenderTarget();
+    LBlurHorizontalShader.Enable(True);
+    LBlurHorizontalShader.SetTextureUniform('inputTexture', LBloomTextures[LI], 0);
+    LBlurHorizontalShader.SetFloatUniform('texelSize', LTexelSize);
+    LBlurHorizontalShader.SetFloatUniform('blurRadius', LBloomRadius);
+
+    RenderFullscreenQuad(LBloomTextures[LI]);
+    LBlurHorizontalShader.Enable(False);
+    LBlurTextures[LI].UnsetAsRenderTarget();
+
+    // Vertical blur back to bloom texture
+    LBloomTextures[LI].SetAsRenderTarget();
+    LTexelSize := 1.0 / (LBlurTextures[LI].GetSize().h);
+
+    LBlurVerticalShader.Enable(True);
+    LBlurVerticalShader.SetTextureUniform('inputTexture', LBlurTextures[LI], 0);
+    LBlurVerticalShader.SetFloatUniform('texelSize', LTexelSize);
+    LBlurVerticalShader.SetFloatUniform('blurRadius', LBloomRadius);
+
+    RenderFullscreenQuad(LBlurTextures[LI]);
+    LBlurVerticalShader.Enable(False);
+    LBloomTextures[LI].UnsetAsRenderTarget();
+  end;
+
+  // Step 4: Accumulate/upsample bloom levels into one texture (LBloomAccumTexture)
+  LBloomAccumTexture.SetAsRenderTarget();
+  LBloomAccumTexture.Clear(pxBLACK);
+
+  TpxWindow.SetBlendMode(pxAdditiveAlphaBlendMode); // Use your additive blend mode
+
+  // Add upsampled blurred bloom textures from largest to smallest
+  for LI := CBloomPasses-1 downto 0 do
+  begin
+    RenderFullscreenQuad(LBloomTextures[LI]);
+  end;
+
+  TpxWindow.RestoreDefaultBlendMode();
+  LBloomAccumTexture.UnsetAsRenderTarget();
+end;
+
+
+procedure TAsteroidsDemo.RenderFullscreenQuad(const ATexture: TpxTexture);
+begin
+  // Render texture as fullscreen quad
+  ATexture.Draw(0, 0, pxWHITE);
+end;
+
+
+procedure TAsteroidsDemo.CreateObjectTextures();
 begin
   CreateShipTextures();
   CreateAsteroidTextures();
@@ -315,7 +614,7 @@ begin
   CreateStarTextures();
 end;
 
-procedure TAsteroids.CreateShipTextures();
+procedure TAsteroidsDemo.CreateShipTextures();
 var
   LTextureSize: Integer;
   LCenterX: Single;
@@ -352,22 +651,22 @@ begin
 
   LShipTexture.UnsetAsRenderTarget();
 
-  // Create glowing ship texture
+  // Create glowing ship texture (brighter for bloom effect)
   LShipGlowTexture := TpxTexture.Create();
   LShipGlowTexture.Alloc(LTextureSize, LTextureSize, pxBLANK, pxHDTexture);
 
   LShipGlowTexture.SetAsRenderTarget();
   LShipGlowTexture.Clear(pxBLANK);
 
-  // Draw thicker glowing outline
-  TpxWindow.DrawLine(LX1, LY1, LX2, LY2, pxCYAN, 4);
-  TpxWindow.DrawLine(LX2, LY2, LX3, LY3, pxCYAN, 4);
-  TpxWindow.DrawLine(LX3, LY3, LX1, LY1, pxCYAN, 4);
+  // Draw thicker, brighter glowing outline
+  TpxWindow.DrawLine(LX1, LY1, LX2, LY2, pxWHITE, 4);
+  TpxWindow.DrawLine(LX2, LY2, LX3, LY3, pxWHITE, 4);
+  TpxWindow.DrawLine(LX3, LY3, LX1, LY1, pxWHITE, 4);
 
   LShipGlowTexture.UnsetAsRenderTarget();
 end;
 
-procedure TAsteroids.GenerateAsteroidPoints(var AAsteroid: TAsteroid);
+procedure TAsteroidsDemo.GenerateAsteroidPoints(var AAsteroid: TAsteroid);
 var
   LI: Integer;
   LAngle: Single;
@@ -386,7 +685,7 @@ begin
   end;
 end;
 
-procedure TAsteroids.CreateAsteroidTextures();
+procedure TAsteroidsDemo.CreateAsteroidTextures();
 var
   LSize: TAsteroidSize;
   LTextureSize: Integer;
@@ -425,19 +724,19 @@ begin
       LX2 := LCenterX + LAsteroid.Points[(LI + 1) mod Length(LAsteroid.Points)].x;
       LY2 := LCenterY + LAsteroid.Points[(LI + 1) mod Length(LAsteroid.Points)].y;
 
-      TpxWindow.DrawLine(LX1, LY1, LX2, LY2, pxMAGENTA, 2);
+      TpxWindow.DrawLine(LX1, LY1, LX2, LY2, pxWHITE{pxMAGENTA}, 2);
     end;
 
     LAsteroidTexture[LSize].UnsetAsRenderTarget();
 
-    // Create glowing asteroid texture
+    // Create glowing asteroid texture (brighter for bloom)
     LAsteroidGlowTexture[LSize] := TpxTexture.Create();
     LAsteroidGlowTexture[LSize].Alloc(LTextureSize, LTextureSize, pxBLANK, pxHDTexture);
 
     LAsteroidGlowTexture[LSize].SetAsRenderTarget();
     LAsteroidGlowTexture[LSize].Clear(pxBLANK);
 
-    // Draw thicker glowing outline using same points
+    // Draw thicker, brighter glowing outline
     for LI := 0 to High(LAsteroid.Points) do
     begin
       LX1 := LCenterX + LAsteroid.Points[LI].x;
@@ -445,14 +744,14 @@ begin
       LX2 := LCenterX + LAsteroid.Points[(LI + 1) mod Length(LAsteroid.Points)].x;
       LY2 := LCenterY + LAsteroid.Points[(LI + 1) mod Length(LAsteroid.Points)].y;
 
-      TpxWindow.DrawLine(LX1, LY1, LX2, LY2, pxMAGENTA, 4);
+      TpxWindow.DrawLine(LX1, LY1, LX2, LY2, pxWHITE, 4);
     end;
 
     LAsteroidGlowTexture[LSize].UnsetAsRenderTarget();
   end;
 end;
 
-procedure TAsteroids.CreateBulletTextures();
+procedure TAsteroidsDemo.CreateBulletTextures();
 var
   LTextureSize: Integer;
   LCenterX: Single;
@@ -474,19 +773,19 @@ begin
 
   LBulletTexture.UnsetAsRenderTarget();
 
-  // Create glowing bullet texture
+  // Create glowing bullet texture (much brighter for bloom)
   LBulletGlowTexture := TpxTexture.Create();
   LBulletGlowTexture.Alloc(LTextureSize, LTextureSize, pxBLANK, pxHDTexture);
 
   LBulletGlowTexture.SetAsRenderTarget();
   LBulletGlowTexture.Clear(pxBLANK);
 
-  TpxWindow.DrawFillCircle(LCenterX, LCenterY, 5, pxYELLOW);
+  TpxWindow.DrawFillCircle(LCenterX, LCenterY, 5, pxWHITE);
 
   LBulletGlowTexture.UnsetAsRenderTarget();
 end;
 
-procedure TAsteroids.CreateParticleTextures();
+procedure TAsteroidsDemo.CreateParticleTextures();
 var
   LTextureSize: Integer;
   LCenterX: Single;
@@ -496,7 +795,7 @@ begin
   LCenterX := LTextureSize / 2;
   LCenterY := LTextureSize / 2;
 
-  // Create particle texture
+  // Create particle texture (bright for bloom)
   LParticleTexture := TpxTexture.Create();
   LParticleTexture.Alloc(LTextureSize, LTextureSize, pxBLANK, pxHDTexture);
 
@@ -504,12 +803,11 @@ begin
   LParticleTexture.Clear(pxBLANK);
 
   TpxWindow.DrawFillCircle(LCenterX, LCenterY, 3, pxWHITE);
-  TpxWindow.DrawFillCircle(LCenterX, LCenterY, 1, pxWHITE);
 
   LParticleTexture.UnsetAsRenderTarget();
 end;
 
-procedure TAsteroids.CreateStarTextures();
+procedure TAsteroidsDemo.CreateStarTextures();
 var
   LTextureSize: Integer;
   LCenterX: Single;
@@ -531,7 +829,7 @@ begin
   LStarTexture.UnsetAsRenderTarget();
 end;
 
-function TAsteroids.GetAsteroidTextureSize(const ASize: TAsteroidSize): Integer;
+function TAsteroidsDemo.GetAsteroidTextureSize(const ASize: TAsteroidSize): Integer;
 begin
   case ASize of
     asLarge: Result := 140;   // 60 * 2 + some padding
@@ -542,17 +840,18 @@ begin
   end;
 end;
 
-procedure TAsteroids.OnShutdown();
+procedure TAsteroidsDemo.OnShutdown();
 var
   LSize: TAsteroidSize;
 begin
+  DestroyBloomResources();
+
   for LSize := Low(TAsteroidSize) to High(TAsteroidSize) do
   begin
     LAsteroidGlowTexture[LSize].Free();
     LAsteroidTexture[LSize].Free();
   end;
 
-  LSceneTexture.Free();
   LStarTexture.Free();
   LParticleTexture.Free();
   LBulletGlowTexture.Free();
@@ -563,7 +862,7 @@ begin
   TpxWindow.Close();
 end;
 
-procedure TAsteroids.InitializeGame();
+procedure TAsteroidsDemo.InitializeGame();
 var
   LI: Integer;
 begin
@@ -574,7 +873,6 @@ begin
   LFireCooldown := 0;
   LShakeIntensity := 0;
   LFlashIntensity := 0;
-  LBloomIntensity := 1.0;
   LDistortionAmount := 0;
 
   // Clear arrays
@@ -589,7 +887,7 @@ begin
   StartLevel();
 end;
 
-procedure TAsteroids.ResetShip();
+procedure TAsteroidsDemo.ResetShip();
 begin
   LShip.Position.x := LScreenSize.w / 2;
   LShip.Position.y := LScreenSize.h / 2;
@@ -602,7 +900,7 @@ begin
     LShip.Lives := 3;
 end;
 
-procedure TAsteroids.StartLevel();
+procedure TAsteroidsDemo.StartLevel();
 var
   LI: Integer;
   LCount: Integer;
@@ -632,7 +930,7 @@ begin
   end;
 end;
 
-procedure TAsteroids.CreateAsteroid(const APosition: TpxVector; const ASize: TAsteroidSize; const AVelocity: TpxVector);
+procedure TAsteroidsDemo.CreateAsteroid(const APosition: TpxVector; const ASize: TAsteroidSize; const AVelocity: TpxVector);
 var
   LI: Integer;
 begin
@@ -653,7 +951,7 @@ begin
   end;
 end;
 
-function TAsteroids.GetAsteroidRadius(const ASize: TAsteroidSize): Single;
+function TAsteroidsDemo.GetAsteroidRadius(const ASize: TAsteroidSize): Single;
 begin
   case ASize of
     asLarge: Result := 30;
@@ -664,7 +962,7 @@ begin
   end;
 end;
 
-procedure TAsteroids.CreateBullet(const APosition, ADirection: TpxVector);
+procedure TAsteroidsDemo.CreateBullet(const APosition, ADirection: TpxVector);
 var
   LI: Integer;
 begin
@@ -681,7 +979,7 @@ begin
   end;
 end;
 
-procedure TAsteroids.CreateParticle(const APosition: TpxVector; const AVelocity: TpxVector; const AColor: TpxColor; const ALife, ASize: Single);
+procedure TAsteroidsDemo.CreateParticle(const APosition: TpxVector; const AVelocity: TpxVector; const AColor: TpxColor; const ALife, ASize: Single);
 var
   LI: Integer;
 begin
@@ -701,7 +999,7 @@ begin
   end;
 end;
 
-procedure TAsteroids.CreateExplosion(const APosition: TpxVector; const AIntensity: Single; const AColor: TpxColor);
+procedure TAsteroidsDemo.CreateExplosion(const APosition: TpxVector; const AIntensity: Single; const AColor: TpxColor);
 var
   LI: Integer;
   LAngle: Single;
@@ -728,17 +1026,17 @@ begin
   TriggerScreenFlash(AIntensity * 0.5);
 end;
 
-procedure TAsteroids.TriggerScreenShake(const AIntensity: Single);
+procedure TAsteroidsDemo.TriggerScreenShake(const AIntensity: Single);
 begin
   LShakeIntensity := AIntensity;
 end;
 
-procedure TAsteroids.TriggerScreenFlash(const AIntensity: Single);
+procedure TAsteroidsDemo.TriggerScreenFlash(const AIntensity: Single);
 begin
   LFlashIntensity := AIntensity;
 end;
 
-procedure TAsteroids.HandleInput();
+procedure TAsteroidsDemo.HandleInput();
 begin
   if TpxInput.KeyPressed(pxKEY_ESCAPE) then
     SetTerminate(True);
@@ -748,9 +1046,28 @@ begin
 
   if TpxInput.KeyPressed(pxKEY_R) and LGameOver then
     InitializeGame();
+
+  // Bloom controls for testing/tweaking
+  if TpxInput.KeyPressed(pxKEY_1) then
+    LBloomThreshold := LBloomThreshold - 0.1;
+  if TpxInput.KeyPressed(pxKEY_2) then
+    LBloomThreshold := LBloomThreshold + 0.1;
+  if TpxInput.KeyPressed(pxKEY_3) then
+    LBloomIntensity := LBloomIntensity - 0.1;
+  if TpxInput.KeyPressed(pxKEY_4) then
+    LBloomIntensity := LBloomIntensity + 0.1;
+  if TpxInput.KeyPressed(pxKEY_5) then
+    LBloomRadius := LBloomRadius - 0.5;
+  if TpxInput.KeyPressed(pxKEY_6) then
+    LBloomRadius := LBloomRadius + 0.5;
+
+  // Clamp values
+  LBloomThreshold := TpxMath.ClipValueFloat(LBloomThreshold, 0.0, 1.0, False);
+  LBloomIntensity := TpxMath.ClipValueFloat(LBloomIntensity, 0.0, 3.0, False);
+  LBloomRadius := TpxMath.ClipValueFloat(LBloomRadius, 0.5, 5.0, False);
 end;
 
-procedure TAsteroids.UpdateShip(const ADelta: Single);
+procedure TAsteroidsDemo.UpdateShip(const ADelta: Single);
 var
   LThrustPower: Single;
   LThrustDir: TpxVector;
@@ -841,7 +1158,7 @@ begin
   end;
 end;
 
-procedure TAsteroids.UpdateBullets(const ADelta: Single);
+procedure TAsteroidsDemo.UpdateBullets(const ADelta: Single);
 var
   LI: Integer;
 begin
@@ -865,7 +1182,7 @@ begin
   end;
 end;
 
-procedure TAsteroids.UpdateAsteroids(const ADelta: Single);
+procedure TAsteroidsDemo.UpdateAsteroids(const ADelta: Single);
 var
   LI: Integer;
 begin
@@ -885,7 +1202,7 @@ begin
   end;
 end;
 
-procedure TAsteroids.UpdateParticles(const ADelta: Single);
+procedure TAsteroidsDemo.UpdateParticles(const ADelta: Single);
 var
   LI: Integer;
   LLifeRatio: Single;
@@ -915,7 +1232,7 @@ begin
   end;
 end;
 
-procedure TAsteroids.UpdateEffects(const ADelta: Single);
+procedure TAsteroidsDemo.UpdateEffects(const ADelta: Single);
 begin
   // Update screen shake
   if LShakeIntensity > 0 then
@@ -928,11 +1245,15 @@ begin
   // Update distortion based on effects
   LDistortionAmount := LShakeIntensity * 0.5;
 
-  // Pulsing bloom effect
+  // Dynamic bloom effects based on game state
   LBloomIntensity := 0.8 + Sin(LTime * 2) * 0.2;
+
+  // Increase bloom intensity during explosions
+  if LFlashIntensity > 0 then
+    LBloomIntensity := LBloomIntensity + (LFlashIntensity * 0.5);
 end;
 
-procedure TAsteroids.CheckCollisions();
+procedure TAsteroidsDemo.CheckCollisions();
 var
   LI: Integer;
   LJ: Integer;
@@ -970,7 +1291,7 @@ begin
   end;
 end;
 
-procedure TAsteroids.DestroyAsteroid(const AIndex: Integer);
+procedure TAsteroidsDemo.DestroyAsteroid(const AIndex: Integer);
 var
   LSize: TAsteroidSize;
   LPosition: TpxVector;
@@ -1008,7 +1329,7 @@ begin
   LAsteroids[AIndex].Active := False;
 end;
 
-procedure TAsteroids.HitShip();
+procedure TAsteroidsDemo.HitShip();
 begin
   CreateExplosion(LShip.Position, 2.0, pxRED);
   Dec(LShip.Lives);
@@ -1024,13 +1345,13 @@ begin
   end;
 end;
 
-procedure TAsteroids.NextLevel();
+procedure TAsteroidsDemo.NextLevel();
 begin
   Inc(LLevel);
   StartLevel();
 end;
 
-function TAsteroids.CircleCollision(const APos1: TpxVector; const ARadius1: Single; const APos2: TpxVector; const ARadius2: Single): Boolean;
+function TAsteroidsDemo.CircleCollision(const APos1: TpxVector; const ARadius1: Single; const APos2: TpxVector; const ARadius2: Single): Boolean;
 var
   LDistance: Single;
 begin
@@ -1038,7 +1359,7 @@ begin
   Result := LDistance < (ARadius1 + ARadius2);
 end;
 
-procedure TAsteroids.WrapPosition(var APosition: TpxVector);
+procedure TAsteroidsDemo.WrapPosition(var APosition: TpxVector);
 begin
   if APosition.x < 0 then
     APosition.x := LScreenSize.w
@@ -1051,7 +1372,7 @@ begin
     APosition.y := 0;
 end;
 
-procedure TAsteroids.OnUpdate();
+procedure TAsteroidsDemo.OnUpdate();
 var
   LDelta: Single;
   LAsteroidCount: Integer;
@@ -1083,23 +1404,27 @@ begin
   LTime := LTime + LDelta;
 end;
 
-procedure TAsteroids.OnRender();
+procedure TAsteroidsDemo.OnRender();
 begin
+  // Step 1: Render scene to texture
+  RenderSceneToTexture();
+
+  // Step 2: Apply bloom post-processing
+  ApplyBloomEffect();
+
+  // Step 3: Final composite - combine scene with bloom
   TpxWindow.Clear(pxBLACK);
 
-  // Draw everything using pre-rendered textures
-  DrawStarField();
+  LCombineShader.Enable(True);
+  LCombineShader.SetTextureUniform('sceneTexture', LSceneTexture, 0);
+  LCombineShader.SetTextureUniform('bloomTexture', LBloomAccumTexture, 1); // << CORRECT
+  LCombineShader.SetFloatUniform('bloomIntensity', LBloomIntensity);
 
-  // Draw glow layer with additive blending for bloom effect
-  TpxWindow.SetBlendMode(pxAdditiveAlphaBlendMode);
-  DrawShip();
-  DrawAsteroids();
-  DrawBullets();
-  DrawParticles();
-  TpxWindow.RestoreDefaultBlendMode();
+  RenderFullscreenQuad(LSceneTexture);
+  LCombineShader.Enable(False);
 end;
 
-procedure TAsteroids.DrawStarField();
+procedure TAsteroidsDemo.DrawStarField();
 var
   LI: Integer;
   LScale: Single;
@@ -1125,7 +1450,7 @@ begin
   end;
 end;
 
-procedure TAsteroids.DrawShip();
+procedure TAsteroidsDemo.DrawShip();
 var
   LOrigin: TpxVector;
   LShipColor: TpxColor;
@@ -1145,14 +1470,15 @@ begin
   else
     LShipColor := pxCYAN;
 
-  // Draw glow first (larger, semi-transparent)
-  LShipGlowTexture.Draw(LShip.Position.x, LShip.Position.y, LShipColor, nil, @LOrigin, nil, LShip.Angle);
-
-  // Draw main ship on top
+  // Draw main ship
   LShipTexture.Draw(LShip.Position.x, LShip.Position.y, LShipColor, nil, @LOrigin, nil, LShip.Angle);
+
+  // Draw glow version for bloom (bright white)
+  if LShip.Thrust then
+    LShipGlowTexture.Draw(LShip.Position.x, LShip.Position.y, pxWHITE, nil, @LOrigin, nil, LShip.Angle);
 end;
 
-procedure TAsteroids.DrawAsteroids();
+procedure TAsteroidsDemo.DrawAsteroids();
 var
   LI: Integer;
   LJ: Integer;
@@ -1181,13 +1507,13 @@ begin
         LX2 := LAsteroids[LI].Points[(LJ + 1) mod Length(LAsteroids[LI].Points)].x * LCos - LAsteroids[LI].Points[(LJ + 1) mod Length(LAsteroids[LI].Points)].y * LSin + LAsteroids[LI].Position.x;
         LY2 := LAsteroids[LI].Points[(LJ + 1) mod Length(LAsteroids[LI].Points)].x * LSin + LAsteroids[LI].Points[(LJ + 1) mod Length(LAsteroids[LI].Points)].y * LCos + LAsteroids[LI].Position.y;
 
-        TpxWindow.DrawLine(LX1, LY1, LX2, LY2, pxMAGENTA, 2);
+        TpxWindow.DrawLine(LX1, LY1, LX2, LY2, pxWHITE{pxMAGENTA}, 2);
       end;
     end;
   end;
 end;
 
-procedure TAsteroids.DrawBullets();
+procedure TAsteroidsDemo.DrawBullets();
 var
   LI: Integer;
   LOrigin: TpxVector;
@@ -1199,16 +1525,16 @@ begin
   begin
     if LBullets[LI].Active then
     begin
-      // Draw glow first
-      LBulletGlowTexture.Draw(LBullets[LI].Position.x, LBullets[LI].Position.y, pxYELLOW, nil, @LOrigin);
-
-      // Draw main bullet on top
+      // Draw main bullet
       LBulletTexture.Draw(LBullets[LI].Position.x, LBullets[LI].Position.y, pxYELLOW, nil, @LOrigin);
+
+      // Draw bright glow for bloom
+      LBulletGlowTexture.Draw(LBullets[LI].Position.x, LBullets[LI].Position.y, pxWHITE, nil, @LOrigin);
     end;
   end;
 end;
 
-procedure TAsteroids.DrawParticles();
+procedure TAsteroidsDemo.DrawParticles();
 var
   LI: Integer;
   LOrigin: TpxVector;
@@ -1231,12 +1557,12 @@ begin
   end;
 end;
 
-procedure TAsteroids.OnRenderHUD();
+procedure TAsteroidsDemo.OnRenderHUD();
 begin
   DrawUI();
 end;
 
-procedure TAsteroids.DrawUI();
+procedure TAsteroidsDemo.DrawUI();
 var
   LY: Single;
   LText: string;
@@ -1254,10 +1580,19 @@ begin
   for LI := 0 to LShip.Lives - 1 do
     LText := LText + '▲ ';
   LFont.DrawText(pxCYAN, 10, LY, pxAlignLeft, LText, []);
+  LY := LY + 30;
 
-  LFont.DrawText(pxWHITE, 10, LScreenSize.h - 120, pxAlignLeft, 'WASD/ARROWS: Move', []);
-  LFont.DrawText(pxWHITE, 10, LScreenSize.h - 100, pxAlignLeft, 'SPACE/S: Fire', []);
-  LFont.DrawText(pxWHITE, 10, LScreenSize.h - 80, pxAlignLeft, 'F11: Fullscreen', []);
+  // Bloom controls display
+  LFont.DrawText(pxWHITE, 10, LY, pxAlignLeft, 'Bloom Threshold: %.2f (1/2)', [LBloomThreshold]);
+  LY := LY + 20;
+  LFont.DrawText(pxWHITE, 10, LY, pxAlignLeft, 'Bloom Intensity: %.2f (3/4)', [LBloomIntensity]);
+  LY := LY + 20;
+  LFont.DrawText(pxWHITE, 10, LY, pxAlignLeft, 'Bloom Radius: %.2f (5/6)', [LBloomRadius]);
+
+  LFont.DrawText(pxWHITE, 10, LScreenSize.h - 140, pxAlignLeft, 'WASD/ARROWS: Move', []);
+  LFont.DrawText(pxWHITE, 10, LScreenSize.h - 120, pxAlignLeft, 'SPACE/S: Fire', []);
+  LFont.DrawText(pxWHITE, 10, LScreenSize.h - 100, pxAlignLeft, 'F11: Fullscreen', []);
+  LFont.DrawText(pxWHITE, 10, LScreenSize.h - 80, pxAlignLeft, '1-6: Bloom Controls', []);
   LFont.DrawText(pxWHITE, 10, LScreenSize.h - 60, pxAlignLeft, 'ESC: Quit', []);
 
   if LGameOver then

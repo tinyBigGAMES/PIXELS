@@ -56,6 +56,8 @@ const
   pxCRLF = pxLF+pxCR;
   pxESC  = AnsiChar(#27);
 
+  VK_ESC = 27;
+
   // Cursor Movement
   pxCSICursorPos       = pxESC + '[%d;%dH';     // Set cursor to (row, col)
   pxCSICursorUp        = pxESC + '[%dA';        // Move cursor up by n lines
@@ -145,8 +147,15 @@ const
 
 type
 
+  { TpxCharSet }
+  TpxCharSet = set of AnsiChar;
+
   { TpxConsole }
   TpxConsole = class(TpxStaticObject)
+  private class var
+    FTeletypeDelay: Integer;
+    FKeyState: array [0..1, 0..255] of Boolean;
+    FPerformanceFrequency: Int64;
   private
     class constructor Create();
     class destructor Destroy();
@@ -201,8 +210,20 @@ type
     class procedure SetTitle(const ATitle: string); static;
 
     class function  AnyKeyPressed(): Boolean; static;
+    class procedure ClearKeyStates(); static;
     class procedure ClearKeyboardBuffer(); static;
     class procedure WaitForAnyConsoleKey(); static;
+    class function  IsKeyPressed(AKey: Byte): Boolean;
+    class function  WasKeyReleased(AKey: Byte): Boolean;
+    class function  WasKeyPressed(AKey: Byte): Boolean;
+    class function  ReadKey(): WideChar;
+    class function  ReadLnX(const AAllowedChars: TpxCharSet; AMaxLength: Integer; const AColor: string): string;
+
+    class function  WrapTextEx(const ALine: string; AMaxCol: Integer; const ABreakChars: TpxCharSet = [' ', '-', ',', ':', #9]): string; static;
+    class procedure Teletype(const AText: string; const AColor: string = pxCSIFGWhite; const AMargin: Integer = 10; const AMinDelay: Integer = 0; const AMaxDelay: Integer = 3; const ABreakKey: Byte = VK_ESC); static;
+
+    class procedure Wait(const AMilliseconds: Double); static;
+
     class procedure Pause(const AForcePause: Boolean=False; AColor: string=''; const AMsg: string=''); static;
   end;
 
@@ -212,12 +233,17 @@ uses
   WinApi.Windows,
   WinApi.Messages,
   System.SysUtils,
-  PIXELS.Utils;
+  PIXELS.Utils,
+  PIXELS.Math;
 
 { TpxConsole }
 class constructor TpxConsole.Create();
 begin
   inherited;
+
+  FTeletypeDelay := 0;
+  QueryPerformanceFrequency(FPerformanceFrequency);
+  ClearKeyStates();
 end;
 
 class destructor TpxConsole.Destroy();
@@ -551,8 +577,8 @@ end;
 class procedure TpxConsole.ClearScreen();
 begin
   if not HasConsoleOutput() then Exit;
-  Write(#12);
   Write(pxCSIClearScreen);
+  Write(pxESC + '[3J');
   Write(pxCSICursorHomePos);
 end;
 
@@ -670,6 +696,12 @@ begin
   end;
 end;
 
+class procedure TpxConsole.ClearKeyStates();
+begin
+  FillChar(FKeyState, SizeOf(FKeyState), 0);
+  ClearKeyboardBuffer();
+end;
+
 class procedure TpxConsole.ClearKeyboardBuffer();
 var
   LInputRecord: TInputRecord;
@@ -702,6 +734,177 @@ begin
   until (LInputRec.EventType and KEY_EVENT <> 0) and
     LInputRec.Event.KeyEvent.bKeyDown;
   SetConsoleMode(LStdIn, LOldMode);
+end;
+
+class function  TpxConsole.IsKeyPressed(AKey: Byte): Boolean;
+begin
+  Result := (GetAsyncKeyState(AKey) and $8000) <> 0;
+end;
+
+class function  TpxConsole.WasKeyReleased(AKey: Byte): Boolean;
+begin
+  Result := False;
+  if IsKeyPressed(AKey) and (not FKeyState[1, AKey]) then
+  begin
+    FKeyState[1, AKey] := True;
+    Result := True;
+  end
+  else if (not IsKeyPressed(AKey)) and (FKeyState[1, AKey]) then
+  begin
+    FKeyState[1, AKey] := False;
+    Result := False;
+  end;
+end;
+
+class function  TpxConsole.WasKeyPressed(AKey: Byte): Boolean;
+begin
+  Result := False;
+  if IsKeyPressed(AKey) and (not FKeyState[1, AKey]) then
+  begin
+    FKeyState[1, AKey] := True;
+    Result := False;
+  end
+  else if (not IsKeyPressed(AKey)) and (FKeyState[1, AKey]) then
+  begin
+    FKeyState[1, AKey] := False;
+    Result := True;
+  end;
+end;
+
+class function  TpxConsole.ReadKey(): WideChar;
+var
+  LInputRecord: TInputRecord;
+  LEventsRead: DWORD;
+begin
+  repeat
+    ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), LInputRecord, 1, LEventsRead);
+  until (LInputRecord.EventType = KEY_EVENT) and LInputRecord.Event.KeyEvent.bKeyDown;
+  Result := LInputRecord.Event.KeyEvent.UnicodeChar;
+end;
+
+class function  TpxConsole.ReadLnX(const AAllowedChars: TpxCharSet; AMaxLength: Integer; const AColor: string): string;
+var
+  LInputChar: Char;
+begin
+  Result := '';
+
+  repeat
+    LInputChar := ReadKey;
+
+    if CharInSet(LInputChar, AAllowedChars) then
+    begin
+      if Length(Result) < AMaxLength then
+      begin
+        if not CharInSet(LInputChar, [#10, #0, #13, #8])  then
+        begin
+          //Print(LInputChar, AColor);
+          Print('%s%s', [AColor, LInputChar]);
+          Result := Result + LInputChar;
+        end;
+      end;
+    end;
+    if LInputChar = #8 then
+    begin
+      if Length(Result) > 0 then
+      begin
+        //Print(#8 + ' ' + #8);
+        Print(#8 + ' ' + #8, []);
+        Delete(Result, Length(Result), 1);
+      end;
+    end;
+  until (LInputChar = #13);
+
+  PrintLn();
+end;
+
+class function  TpxConsole.WrapTextEx(const ALine: string; AMaxCol: Integer; const ABreakChars: TpxCharSet): string;
+var
+  LText: string;
+  LPos: integer;
+  LChar: Char;
+  LLen: Integer;
+  I: Integer;
+begin
+  LText := ALine.Trim;
+
+  LPos := 0;
+  LLen := 0;
+
+  while LPos < LText.Length do
+  begin
+    Inc(LPos);
+
+    LChar := LText[LPos];
+
+    if LChar = #10 then
+    begin
+      LLen := 0;
+      continue;
+    end;
+
+    Inc(LLen);
+
+    if LLen >= AMaxCol then
+    begin
+      for I := LPos downto 1 do
+      begin
+        LChar := LText[I];
+
+        if CharInSet(LChar, ABreakChars) then
+        begin
+          LText.Insert(I, #10);
+          Break;
+        end;
+      end;
+
+      LLen := 0;
+    end;
+  end;
+
+  Result := LText;
+end;
+
+class procedure TpxConsole.Teletype(const AText: string; const AColor: string; const AMargin: Integer; const AMinDelay: Integer; const AMaxDelay: Integer; const ABreakKey: Byte);
+var
+  LText: string;
+  LMaxCol: Integer;
+  LChar: Char;
+  LWidth: Integer;
+begin
+  GetSize(@LWidth, nil);
+  LMaxCol := LWidth - AMargin;
+
+  LText := WrapTextEx(AText, LMaxCol);
+
+  for LChar in LText do
+  begin
+    TpxUtils.ProcessMessages();
+    Print('%s%s', [AColor, LChar]);
+    if not TpxMath.RandomBool() then
+      FTeletypeDelay := TpxMath.RandomRangeInt(AMinDelay, AMaxDelay);
+    Wait(FTeletypeDelay);
+    if IsKeyPressed(ABreakKey) then
+    begin
+      ClearKeyboardBuffer;
+      Break;
+    end;
+  end;
+end;
+
+class procedure TpxConsole.Wait(const AMilliseconds: Double);
+var
+  LStartCount, LCurrentCount: Int64;
+  LElapsedTime: Double;
+
+begin
+  // Get the starting value of the performance counter
+  QueryPerformanceCounter(LStartCount);
+
+  // Convert milliseconds to seconds for precision timing
+  repeat
+    QueryPerformanceCounter(LCurrentCount);
+    LElapsedTime := (LCurrentCount - LStartCount) / FPerformanceFrequency * 1000.0; // Convert to milliseconds
+  until LElapsedTime >= AMilliseconds;
 end;
 
 class function  TpxConsole.StartedFromConsole(): Boolean;

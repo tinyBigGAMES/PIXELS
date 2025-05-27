@@ -62,12 +62,15 @@ uses
   PIXELS.Network in '..\..\src\PIXELS.Network.pas',
   PIXELS.AI in '..\..\src\PIXELS.AI.pas',
   PIXELS.Base in '..\..\src\PIXELS.Base.pas',
-  UMisc in 'UMisc.pas',
-  UParticleUniverse in 'UParticleUniverse.pas',
-  UPlasmaFire in 'UPlasmaFire.pas',
-  UStarfield in 'UStarfield.pas',
-  UDefender in 'UDefender.pas',
-  UAsteroids in 'UAsteroids.pas';
+  UTextureParallaxDemo in 'UTextureParallaxDemo.pas',
+  UParticleUniverseDemo in 'UParticleUniverseDemo.pas',
+  UPlasmaFireDemo in 'UPlasmaFireDemo.pas',
+  UStarfieldDemo in 'UStarfieldDemo.pas',
+  UDefenderDemo in 'UDefenderDemo.pas',
+  UAsteroidsDemo in 'UAsteroidsDemo.pas',
+  UTextureTintShaderDemo in 'UTextureTintShaderDemo.pas',
+  UBuildZipDemo in 'UBuildZipDemo.pas',
+  UMenu in 'UMenu.pas';
 
 begin
   try

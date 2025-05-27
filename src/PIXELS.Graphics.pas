@@ -444,6 +444,9 @@ type
   end;
 
 
+const
+  CpxDefaultShaderSource = 'CpxDefaultShaderSource';
+
 type
   { TpxShaderKind }
   TpxShaderKind = (pxVertexShader=ALLEGRO_VERTEX_SHADER, pxPixelShader=ALLEGRO_PIXEL_SHADER);
@@ -466,9 +469,11 @@ type
     function  SetFloatUniform(const AName: string; const AValue: Single): Boolean; overload;
     function  SetFloatUniform(const AName: string; const ANumComponents: Integer; const AValue: PSingle; const ANumElements: Integer): Boolean; overload;
     function  SetBoolUniform(const AName: string; const AValue: Boolean): Boolean;
-    function  SetTextureUniform(const AName: string; const ATexture: TpxTexture): Boolean;
+    function  SetTextureUniform(const AName: string; const ATexture: TpxTexture; const AUnit: Integer): Boolean;
     function  SetVec2Uniform(const AName: string; const AValue: TpxVector): Boolean; overload;
     function  SetVec2Uniform(const AName: string; const X: Single; const Y: Single): Boolean; overload;
+    function  SetVec3Uniform(const AName: string; const AValue: TpxVector): Boolean; overload;
+    function  SetVec3Uniform(const AName: string; const X, Y, Z: Single): Boolean; overload;
   end;
 
 type
@@ -844,7 +849,12 @@ begin
 
   // Unregister event source
   al_unregister_event_source(TPixels.Queue, al_get_display_event_source(FDisplay));
+
+  // Destroy the display handle and other  states
   al_destroy_display(FDisplay);
+  FDisplay := nil;
+  FReady := False;
+  FHWNDHandle := 0;
 end;
 
 class procedure TpxWindow.Focus();
@@ -2110,6 +2120,8 @@ begin
 end;
 
 function TpxShader.Load(const AKind: TpxShaderKind; const ASource: string): Boolean;
+var
+  LSource: string;
 begin
   Result := False;
 
@@ -2121,8 +2133,13 @@ begin
   // Clear existing shader source for this kind
   al_attach_shader_source(FHandle, Ord(AKind), nil);
 
+  LSource := ASource;
+
+  if SameText(LSource, CpxDefaultShaderSource) then
+    LSource := string(al_get_default_shader_source(ALLEGRO_SHADER_AUTO, Ord(AKind)));
+
   // Attach new shader source
-  Result := al_attach_shader_source(FHandle, Ord(AKind), TpxUtils.AsUTF8(ASource));
+  Result := al_attach_shader_source(FHandle, Ord(AKind), TpxUtils.AsUTF8(LSource));
 end;
 
 function TpxShader.Load(const AFile: PpxFile; const AKind: TpxShaderKind): Boolean;
@@ -2245,7 +2262,7 @@ begin
   Result := al_set_shader_bool(TpxUtils.AsUTF8(AName), AValue);
 end;
 
-function TpxShader.SetTextureUniform(const AName: string; const ATexture: TpxTexture): Boolean;
+function TpxShader.SetTextureUniform(const AName: string; const ATexture: TpxTexture; const AUnit: Integer): Boolean;
 begin
   Result := False;
 
@@ -2255,7 +2272,7 @@ begin
   if AName.IsEmpty then Exit;
   if not Assigned(ATexture) then Exit;
 
-  Result := al_set_shader_sampler(TpxUtils.AsUTF8(AName), ATexture.Handle, 0);
+  Result := al_set_shader_sampler(TpxUtils.AsUTF8(AName), ATexture.Handle, AUnit);
 end;
 
 function TpxShader.SetVec2Uniform(const AName: string; const AValue: TpxVector): Boolean;
@@ -2274,6 +2291,26 @@ begin
   LVec2[0] := X;
   LVec2[1] := Y;
   Result := SetFloatUniform(AName, 2, @LVec2, 1);
+end;
+
+function TpxShader.SetVec3Uniform(const AName: string; const AValue: TpxVector): Boolean;
+var
+  LVec3: array[0..2] of Single;
+begin
+  LVec3[0] := AValue.X;
+  LVec3[1] := AValue.Y;
+  LVec3[2] := AValue.Z;
+  Result := SetFloatUniform(AName, 3, @LVec3, 1);
+end;
+
+function TpxShader.SetVec3Uniform(const AName: string; const X, Y, Z: Single): Boolean;
+var
+  LVec3: array[0..2] of Single;
+begin
+  LVec3[0] := X;
+  LVec3[1] := Y;
+  LVec3[2] := Z;
+  Result := SetFloatUniform(AName, 3, @LVec3, 1);
 end;
 
 { TpxCamera }

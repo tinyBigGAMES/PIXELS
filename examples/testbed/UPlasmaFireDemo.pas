@@ -1,176 +1,156 @@
 ﻿(******************************************************************************
-  PIXELS Plasma Fire Effect Demo
+  PIXELS - Plasma Fire Effect Demo (GPU Shader Implementation)
+  Advanced real-time plasma fire simulation using programmable pixel shaders
 
-  HEADER BLOCK:
-  =============
-  Demo Title: PIXELS Plasma Fire Effect Demo
-  Brief Description: Real-time GPU-accelerated plasma fire simulation using
-                    GLSL pixel shaders for mesmerizing flame effects.
-
-  Comprehensive Overview: This advanced demonstration showcases the transformation
-  from CPU-intensive pixel manipulation to high-performance GPU shader programming
-  within the PIXELS game library. The demo generates dynamic, organic fire effects
-  using mathematical noise functions executed entirely on the graphics processor,
-  achieving cinematic-quality visual effects while maintaining perfect 60 FPS
-  performance. This represents a critical case study in modern 2D graphics
-  optimization, demonstrating how proper GPU utilization can transform unusable
-  effects into production-ready real-time systems.
+  This demo showcases advanced GPU-accelerated plasma generation techniques
+  using GLSL pixel shaders to create dynamic, animated fire effects with
+  realistic color gradients, wind simulation, and multi-layer compositing.
+  Demonstrates sophisticated shader programming, render-to-texture workflows,
+  and real-time parameter animation within the PIXELS game library framework.
 
   Technical Complexity Level: Advanced
 
   OVERVIEW:
-  =========
-  What the Demo Demonstrates:
-  - GPU vs CPU performance characteristics for pixel-level operations
-  - Real-time procedural texture generation using shader programming
-  - Advanced mathematical noise synthesis for organic visual effects
-  - Proper shader integration within game engine architectures
 
-  Primary Educational Objectives:
-  - Illustrate dramatic performance gains through GPU parallelization
-  - Teach GLSL pixel shader development for 2D effects
-  - Demonstrate real-time parameter binding and uniform management
-  - Showcase procedural content generation techniques
+  The Plasma Fire demo implements a sophisticated real-time fire simulation
+  entirely on the GPU using custom GLSL pixel shaders. The system generates
+  organic, flame-like patterns through multi-octave noise functions combined
+  with height-based intensity mapping and wind displacement effects. The demo
+  serves as an advanced example of shader programming, demonstrating how
+  mathematical noise functions can create visually compelling natural effects.
 
-  Target Audience: Intermediate to advanced game developers, graphics programmers
-  learning real-time shader development, technical artists interested in
-  procedural effect generation, and engine developers implementing shader systems.
+  Primary educational objectives include teaching shader-based procedural
+  generation, render-to-texture techniques, and real-time parameter animation.
+  Target audience includes intermediate to advanced game developers seeking
+  to understand GPU programming and visual effects implementation.
 
   TECHNICAL IMPLEMENTATION:
-  ========================
-  Core Systems and Algorithms:
-  - GLSL 3.3 Core pixel shader with custom noise functions
-  - Multi-layer noise synthesis using trigonometric combinations:
-    noise(pos * 2.0) + noise(pos * 4.0) * 0.5 + noise(pos * 8.0) * 0.25
-  - Real-time uniform parameter system for CPU-GPU communication
-  - Render target management with off-screen texture generation
+
+  Core Systems:
+  - Custom GLSL pixel shader for plasma generation
+  - Render-to-texture pipeline with 800x600 resolution
+  - Real-time uniform parameter updates at 60 FPS
+  - Multi-layer additive blending composition
+  - Deterministic animation system using locked timestep
 
   Data Structures:
-  - TpxShader: GPU shader program container with uniform binding
-  - TpxTexture: 800x600 HD render target for plasma generation
-  - Single precision floating point for time, intensity, wind parameters
+  - TpxShader: Encapsulates GLSL shader program management
+  - TpxTexture: Render target for plasma generation (800x600, pxHDTexture)
+  - TpxFont: UI text rendering for parameter display
+  - Animation variables: FTime, FFireIntensity, FWindEffect
 
   Mathematical Foundations:
-  - UV Coordinate System: [0,1] normalized screen coordinates
-  - Height Factor Formula: heightFactor = (1.0 - uv.y)²
-  - Wind Displacement: pos.x += u_wind * heightFactor * 0.5
-  - Noise Function: sin(p.x * 0.5 + time * 3.0) * sin(p.y * 0.3 + time * 2.5)
+  The plasma generation relies on layered noise functions:
 
-  Key Architectural Decisions:
-  - Single render texture vs multiple CPU-based textures
-  - GPU parallel processing vs sequential CPU pixel operations
-  - GLSL fragment shader vs CPU mathematical calculations
+    float noise(vec2 p) {
+        return sin(p.x * 0.5 + u_time * 3.0) * sin(p.y * 0.3 + u_time * 2.5) +
+               cos(p.x * 0.7 + u_time * 1.8) * cos(p.y * 0.4 + u_time * 3.2) +
+               sin((p.x + p.y) * 0.25 + u_time * 4.0) * 0.5;
+    }
+
+  Height-based intensity calculation:
+    float heightFactor = 1.0 - uv.y;
+    heightFactor = heightFactor * heightFactor;  // Quadratic falloff
+
+  Wind displacement implementation:
+    FWindEffect := TpxMath.AngleSin(Round(FTime * 30)) * 0.3;
+    pos.x += u_wind * heightFactor * 0.5;
 
   FEATURES DEMONSTRATED:
-  =====================
-  Graphics Programming Concepts:
-  • Real-time GPU shader programming with GLSL
-  • Procedural texture generation and noise synthesis
-  • Multi-layer rendering with additive blending
-  • Uniform parameter binding and real-time updates
-  • Screen-space coordinate transformations
 
-  Performance Optimization Strategies:
-  • GPU parallelization replacing 1.44M CPU operations per frame
-  • Efficient trigonometric lookup tables via PIXELS TpxMath
-  • Single render target reducing memory overhead
-  • Real-time parameter updates without frame drops
-
-  Game Development Patterns:
-  • Shader resource management and lifecycle
-  • Render target switching and state management
-  • Time-based animation with fixed timestep
-  • Input handling with immediate response
+  • GPU-accelerated procedural generation using pixel shaders
+  • Multi-octave noise synthesis for organic pattern creation
+  • Real-time uniform parameter animation and interpolation
+  • Render-to-texture workflows with fullscreen quad rendering
+  • Multi-layer additive blending for depth and intensity
+  • Height-based effect intensity mapping for realistic fire behavior
+  • Sinusoidal wind displacement simulation
+  • Dynamic fire intensity variation using trigonometric functions
+  • Efficient GPU memory management and texture allocation
+  • Cross-platform GLSL shader compilation and uniform binding
 
   RENDERING TECHNIQUES:
-  ====================
-  Specific Drawing Methods:
-  - Fullscreen quad rendering: DrawFillRectangle(0, 0, 800, 600)
-  - Render target switching: SetAsRenderTarget() / UnsetAsRenderTarget()
-  - Multi-pass composition with pixel-perfect positioning
 
-  Blending Modes:
-  - Additive Alpha Blending (pxAdditiveAlphaBlendMode) for luminous effects
-  - Standard alpha blending restoration for UI elements
-  - Triple-layer rendering with 2-pixel offsets for depth illusion
+  Multi-Pass Rendering Pipeline:
+  1. Set render target to FRenderTexture (800x600)
+  2. Clear render target with pxBLACK
+  3. Enable plasma shader with current uniforms
+  4. Render fullscreen quad (0,0 to 800,600) with pxWHITE
+  5. Disable shader and restore main render target
+  6. Composite three offset layers with additive blending:
+     - Base layer at (0,0)
+     - Secondary layer at (2,-1) for depth
+     - Tertiary layer at (-1,1) for complexity
 
-  Visual Effect Implementation:
-  - Procedural fire color mapping: black→red→orange→yellow→white transitions
-  - Height-based intensity masking for realistic fire physics
-  - Dynamic wind displacement using sine wave modulation
-  - Turbulence overlay with complex mathematical patterns
+  Shader Uniform Management:
+    FPlasmaShader.SetFloatUniform('u_time', FTime);
+    FPlasmaShader.SetFloatUniform('u_intensity', FFireIntensity);
+    FPlasmaShader.SetFloatUniform('u_wind', FWindEffect);
+    FPlasmaShader.SetVec2Uniform('u_resolution', LSize.w, LSize.h);
 
   CONTROLS:
-  =========
-  F11: Toggle Fullscreen Mode
-  ESC: Exit Demo Application
 
-  Interactive Features:
-  - Real-time parameter visualization in HUD display
-  - Automatic animation without user intervention required
-  - Smooth 60 FPS performance monitoring
-  - GPU acceleration status indication
+  • ESC / Joystick X Button: Exit demonstration
+  • F11: Toggle fullscreen mode
+  • Automatic wind animation: 30-degree sine wave cycle
+  • Automatic intensity variation: 45-degree sine wave cycle
 
   MATHEMATICAL FOUNDATION:
-  =======================
-  Core Noise Algorithm (GLSL):
-  float noise(vec2 p) {
-      return sin(p.x * 0.5 + u_time * 3.0) * sin(p.y * 0.3 + u_time * 2.5) +
-             cos(p.x * 0.7 + u_time * 1.8) * cos(p.y * 0.4 + u_time * 3.2) +
-             sin((p.x + p.y) * 0.25 + u_time * 4.0) * 0.5;
-  }
 
-  Fire Color Interpolation:
-  - [0.0-0.25]: black to red transition
-  - [0.25-0.5]: red to orange transition
-  - [0.5-0.75]: orange to yellow transition
-  - [0.75-1.0]: yellow to white transition
+  Fire Color Gradient Implementation:
+    if (intensity < 0.25) color = mix(black, red, intensity * 4.0);
+    else if (intensity < 0.5) color = mix(red, orange, (intensity - 0.25) * 4.0);
+    else if (intensity < 0.75) color = mix(orange, yellow, (intensity - 0.5) * 4.0);
+    else color = mix(yellow, white, (intensity - 0.75) * 4.0);
 
-  Animation Update (Pascal):
-  FTime := FTime + 0.016;  // 60 FPS locked timestep
-  FWindEffect := TpxMath.AngleSin(Round(FTime * 30)) * 0.3;
-  FFireIntensity := 0.8 + (TpxMath.AngleSin(Round(FTime * 45)) * 0.2);
+  Animation Parameter Calculations:
+    FTime := FTime + 0.016;  // 60 FPS delta time
+    FWindEffect := TpxMath.AngleSin(Round(FTime * 30)) * 0.3;
+    FFireIntensity := 0.8 + (TpxMath.AngleSin(Round(FTime * 45)) * 0.2);
+
+  Coordinate Space: UV coordinates (0,0 to 1,1) mapped to texture space
+  Noise Scaling: UV coordinates multiplied by 4.0 for appropriate frequency
+  Temporal Animation: Multiple time-based frequencies (1.8, 2.5, 3.0, 3.2, 4.0, 5.0)
 
   PERFORMANCE CHARACTERISTICS:
-  ===========================
-  Frame Rate: Consistent 60 FPS at 800x600 resolution
-  GPU Operations: 480,000 parallel fragment shader executions per frame
-  CPU Operations: Minimal - only parameter updates and state management
-  Memory Usage: 800x600x4 bytes (1.83MB) for single render texture
 
-  Performance Comparison:
-  - CPU Implementation: 1,440,000 SetPixel operations = 1 FPS
-  - GPU Implementation: Single shader dispatch = 60 FPS
-  - Performance Improvement: 6000% execution speed increase
+  Expected Performance: 60 FPS at 800x600 resolution on modern GPUs
+  Memory Usage: ~1.9 MB for render texture (800*600*4 bytes RGBA)
+  GPU Utilization: Moderate pixel shader workload with trigonometric functions
+  Scalability: Linear scaling with resolution; suitable for 1080p+ displays
 
-  Scalability: Linear performance scaling with resolution
-  Optimization Techniques: Precomputed trigonometry, minimal state changes
+  Optimization Techniques:
+  - Pre-computed sine/cosine tables via TpxMath.AngleSin/AngleCos
+  - Single-pass shader execution with minimal texture sampling
+  - Efficient additive blending for multi-layer composition
+  - Locked timestep prevents frame rate dependencies
 
   EDUCATIONAL VALUE:
-  =================
-  Key Learning Outcomes:
-  - Understanding GPU vs CPU performance characteristics
-  - GLSL shader programming for 2D effects
-  - Real-time procedural content generation
-  - Performance optimization through proper hardware utilization
+
+  Core Learning Objectives:
+  • Understanding GPU shader programming with GLSL
+  • Implementing procedural generation techniques
+  • Real-time parameter animation and interpolation
+  • Render-to-texture workflows and fullscreen quad rendering
+  • Multi-layer blending and compositing techniques
+  • Mathematical noise function implementation
+  • Performance optimization for real-time graphics
 
   Transferable Concepts:
-  - Shader-based particle systems and visual effects
-  - Procedural texture generation for games
-  - Real-time parameter animation systems
-  - GPU-accelerated mathematical computations
+  - Shader-based special effects for particles, explosions, magic spells
+  - Procedural texture generation for materials and environments
+  - Real-time animation systems with trigonometric functions
+  - GPU-accelerated post-processing and visual effects
+  - Cross-platform graphics programming best practices
 
   Real-World Applications:
-  - Fire and explosion effects in 2D games
-  - Atmospheric and environmental effects
-  - User interface visual enhancements
-  - Real-time data visualization
+  Game visual effects, interactive art installations, real-time visualizations,
+  educational graphics programming, and advanced 2D rendering techniques.
+  Serves as foundation for more complex effects like fluid simulation,
+  atmospheric effects, and dynamic lighting systems.
+******************************************************************************)
 
-  Purpose: Demonstrate advanced GPU shader programming and optimization
-           techniques
-*******************************************************************************)
-
-unit UPlasmaFire;
+unit UPlasmaFireDemo;
 
 interface
 
@@ -184,8 +164,8 @@ uses
   PIXELS.Game;
 
 type
-  { TPlasmaFire }
-  TPlasmaFire = class(TpxGame)
+  { TPlasmaFireDemo }
+  TPlasmaFireDemo = class(TpxGame)
   private
     FFont: TpxFont;
     FPlasmaShader: TpxShader;
@@ -270,7 +250,8 @@ const
     '    fragColor = vec4(color, alpha);' + #13#10 +
     '}';
 
-function TPlasmaFire.OnStartup(): Boolean;
+{ TPlasmaFireDemo }
+function TPlasmaFireDemo.OnStartup(): Boolean;
 begin
   Result := False;
 
@@ -300,7 +281,7 @@ begin
   Result := True;
 end;
 
-procedure TPlasmaFire.OnShutdown();
+procedure TPlasmaFireDemo.OnShutdown();
 begin
   FPlasmaShader.Free();
   FRenderTexture.Free();
@@ -308,7 +289,7 @@ begin
   TpxWindow.Close();
 end;
 
-procedure TPlasmaFire.OnUpdate();
+procedure TPlasmaFireDemo.OnUpdate();
 begin
   // Handle input
   if TpxInput.JoystickPressed(pxJOY_BTN_X) or TpxInput.KeyPressed(pxKEY_ESCAPE) then
@@ -327,7 +308,7 @@ begin
   FFireIntensity := 0.8 + (TpxMath.AngleSin(Round(FTime * 45)) * 0.2);
 end;
 
-procedure TPlasmaFire.OnRender();
+procedure TPlasmaFireDemo.OnRender();
 var
   LSize: TpxSize;
 begin
@@ -370,7 +351,7 @@ begin
   TpxWindow.RestoreDefaultBlendMode();
 end;
 
-procedure TPlasmaFire.OnRenderHUD();
+procedure TPlasmaFireDemo.OnRenderHUD();
 begin
   FFont.DrawText(pxWHITE, 10, 10, pxAlignLeft, 'PIXELS - Plasma Fire Effect (GPU Shader)', []);
   FFont.DrawText(pxCYAN, 10, 30, pxAlignLeft, 'FPS: %d', [TpxWindow.GetFPS()]);
@@ -380,7 +361,7 @@ begin
   FFont.DrawText(pxGREEN, 10, 110, pxAlignLeft, 'GPU Accelerated', []);
 end;
 
-function TPlasmaFire.LoadPlasmaShader(): Boolean;
+function TPlasmaFireDemo.LoadPlasmaShader(): Boolean;
 begin
   Result := False;
 

@@ -70,7 +70,7 @@ type
     function  HasTerminated(): Boolean;
     procedure SetTerminate(const ATerminate: Boolean);
 
-    procedure Run();
+    procedure Run(); virtual;
 
     function  OnStartup(): Boolean; virtual;
     procedure OnShutdown(); virtual;
@@ -146,15 +146,9 @@ procedure TpxGame.Run();
 begin
   if not TPixels.IsInit() then Exit;
 
-  (*
-  if Assigned(LPIXELS.RunStartCallback.Handler) then
-    LPIXELS.RunStartCallback.Handler(AWindow, LPIXELS.RunStartCallback.UserData);
-  *)
-
   if not OnStartup() then Exit;
 
   if not TpxWindow.IsInit() then Exit;
-
 
   // Main game loop
   TpxWindow.Focus();

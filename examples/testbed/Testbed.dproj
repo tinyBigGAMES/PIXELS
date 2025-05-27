@@ -4,7 +4,7 @@
         <ProjectVersion>20.3</ProjectVersion>
         <FrameworkType>None</FrameworkType>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <ProjectName Condition="'$(ProjectName)'==''">Testbed</ProjectName>
         <TargetedPlatforms>2</TargetedPlatforms>
@@ -134,12 +134,15 @@
         <DCCReference Include="..\..\src\PIXELS.Network.pas"/>
         <DCCReference Include="..\..\src\PIXELS.AI.pas"/>
         <DCCReference Include="..\..\src\PIXELS.Base.pas"/>
-        <DCCReference Include="UMisc.pas"/>
-        <DCCReference Include="UParticleUniverse.pas"/>
-        <DCCReference Include="UPlasmaFire.pas"/>
-        <DCCReference Include="UStarfield.pas"/>
-        <DCCReference Include="UDefender.pas"/>
-        <DCCReference Include="UAsteroids.pas"/>
+        <DCCReference Include="UTextureParallaxDemo.pas"/>
+        <DCCReference Include="UParticleUniverseDemo.pas"/>
+        <DCCReference Include="UPlasmaFireDemo.pas"/>
+        <DCCReference Include="UStarfieldDemo.pas"/>
+        <DCCReference Include="UDefenderDemo.pas"/>
+        <DCCReference Include="UAsteroidsDemo.pas"/>
+        <DCCReference Include="UTextureTintShaderDemo.pas"/>
+        <DCCReference Include="UBuildZipDemo.pas"/>
+        <DCCReference Include="UMenu.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

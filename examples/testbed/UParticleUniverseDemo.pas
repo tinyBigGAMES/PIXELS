@@ -1,158 +1,142 @@
 ﻿(******************************************************************************
-  PIXELS PARTICLE UNIVERSE DEMO
-  Advanced particle system showcase demonstrating complex physics simulation
+  PIXELS Particle Universe Demo - Advanced Cosmic Particle System
 
-  TECHNICAL COMPLEXITY: Advanced
+  A sophisticated real-time particle simulation demonstrating advanced 2D
+  graphics programming techniques including spiral galaxy generation, orbital
+  mechanics, multi-layered particle systems, procedural texture creation, and
+  complex visual effects rendering. This demo showcases enterprise-level game
+  development patterns and performance optimization strategies for handling
+  thousands of simultaneous particles with dynamic physics simulation.
 
-  OVERVIEW:
-  =========
-  This demonstration showcases PIXELS' advanced 2D graphics capabilities through
-  a sophisticated particle simulation featuring 8000+ simultaneous particles with
-  realistic physics, complex visual effects, and real-time performance optimization.
-  The demo targets intermediate to advanced game developers studying particle
-  systems, physics simulation, and high-performance 2D graphics programming.
+  Technical Complexity: Advanced
 
-  Primary objectives include demonstrating scalable particle architectures,
-  advanced rendering techniques, mathematical physics implementation, and
-  performance optimization strategies suitable for production game development.
+OVERVIEW:
+  This demonstration presents a comprehensive particle system capable of
+  simulating cosmic phenomena including spiral galaxies with orbital mechanics,
+  plasma explosions with chaotic movement patterns, stellar formations with
+  twinkling effects, and high-intensity energy beams. The system manages up to
+  8,000 active particles simultaneously while maintaining 60 FPS performance
+  through optimized mathematical calculations and efficient memory management.
 
-  TECHNICAL IMPLEMENTATION:
-  =========================
-  Core Systems:
-  - Object pooling architecture for 8000 TParticle records
-  - State machine-based particle lifecycle management
-  - Spatial partitioning for efficient collision and rendering
-  - Multi-threaded particle updates (conceptual framework)
+  Primary educational objectives include demonstrating advanced particle system
+  architecture, real-time physics simulation, procedural content generation,
+  and performance-critical graphics programming techniques suitable for
+  professional game development environments.
+
+TECHNICAL IMPLEMENTATION:
+  Core Systems Architecture:
+  - Particle Management: Array-based pool allocation (8000 particles)
+  - Trail System: Separate trail point management (2000 trail points)
+  - Texture Generation: Runtime procedural texture creation with pixel manipulation
+  - Physics Engine: Custom implementation with gravity, orbital mechanics, friction
+  - Rendering Pipeline: Multi-pass additive blending with depth layering
 
   Data Structures:
-  - Static array allocation: array[0..CMaxParticles-1] of TParticle
-  - Trail system: array[0..CMaxTrails-1] of TTrailPoint
-  - Enumerated particle types: ptStar, ptNebula, ptGalaxy, ptPlasma, ptBeam
+  TParticle record contains: position, velocity, color, life management,
+  rotation state, energy level, and type classification. Memory footprint
+  optimized for cache-friendly sequential access patterns.
 
   Mathematical Foundations:
-  - Galaxy spiral equation: θ = (r/30) * (180/π) + arm_offset
-  - Orbital velocity: v = 30 + (200/(r+10)) pixels/second
-  - Gravity simulation: F = 2000/(distance+10) * direction_vector
-  - Particle lifecycle: alpha = life_remaining / max_life
+  Spiral Galaxy Generation:
+    Position.x = CenterX + Radius * cos(Radius/30 * π/180 + ArmOffset + RandomVariation)
+    Position.y = CenterY + Radius * sin(Radius/30 * π/180 + ArmOffset + RandomVariation)
+    OrbitalVelocity = 30 + (200 / (Radius + 10))
 
-  Memory Management:
-  - Zero garbage collection through object reuse
-  - Texture atlas approach with procedural generation
-  - Efficient boolean arrays for active particle tracking
+  Gravitational Physics:
+    GravityForce = 2000 / (Distance + 10)
+    AccelerationX = (DirectionX / Distance) * GravityForce * DeltaTime
 
-  FEATURES DEMONSTRATED:
-  ======================
-  • Advanced particle pooling with 8000+ concurrent objects
-  • Real-time physics simulation (gravity, orbital mechanics, collision)
-  • Procedural texture generation (64x64 HD particles, 32x32 stars)
-  • Multi-layer additive blending for realistic light accumulation
-  • Performance-optimized trigonometry using lookup tables
-  • Dynamic color interpolation with HSV color space manipulation
-  • Trail rendering systems with alpha decay
-  • Interactive particle spawning with mouse input integration
-  • Automatic memory management without garbage collection
-  • Frame-rate independent animation using delta time
+  Performance Optimization:
+  - Pre-computed trigonometric lookup tables (TpxMath.AngleCos/AngleSin)
+  - Object pooling eliminates runtime allocation overhead
+  - Spatial coherence through particle type grouping
+  - Early termination for inactive particle processing
 
-  RENDERING TECHNIQUES:
-  =====================
-  Rendering Pipeline:
-  1. Background layer: Procedural gradient with pulsing effects
-  2. Background glow: Large-scale atmospheric effects (128x128 textures)
-  3. Particle trails: Alpha-blended point rendering
-  4. Main particles: Additive blending with texture rotation
-  5. HUD overlay: Standard alpha blending
+FEATURES DEMONSTRATED:
+  • Advanced particle system architecture with type-based behavior polymorphism
+  • Real-time procedural texture generation with mathematical gradients
+  • Orbital mechanics simulation with gravitational attraction
+  • Multi-layered rendering pipeline with additive blending modes
+  • Dynamic color interpolation based on particle lifecycle and physics state
+  • Trail system implementation for motion persistence effects
+  • Interactive particle generation responding to user input
+  • Automatic content generation with temporal variation
+  • Performance-optimized mathematics using lookup tables
+  • Memory pool management for zero-allocation runtime behavior
 
-  Blending Modes:
-  - pxAdditiveAlphaBlendMode: Core particle glow effects
-  - Standard alpha: UI and background elements
+RENDERING TECHNIQUES:
+  Four-Pass Rendering Pipeline:
+  1. Background Pass: Dynamic pulsing background with large-scale glow effects
+  2. Trail Pass: Additive blending of fading trail points with alpha interpolation
+  3. Particle Pass: Type-specific texture rendering with scale/rotation transforms
+  4. Effects Pass: Screen-space post-processing placeholder for advanced effects
 
-  Optimization Strategies:
-  - Precomputed trigonometry: TpxMath.AngleSin/AngleCos lookup tables
-  - Texture reuse: Single particle texture for multiple effect types
-  - Culling: Off-screen particle deactivation
-  - Batch rendering: Single draw call per texture type
+  Texture Generation Pipeline:
+  - Particle Texture: 64x64 HD texture with cubic falloff gradient
+  - Star Texture: 32x32 multi-pointed star with variable ray lengths
+  - Beam Texture: 128x16 linear gradient with center intensity concentration
+  - Glow Texture: 128x128 fourth-power falloff for soft illumination
 
-  CONTROLS:
-  =========
-  Left Mouse Button:  Plasma Explosion (100 particles, 500px/s velocity)
-  Right Mouse Button: Star Burst (80 particles, 150px/s max velocity)
-  Middle Mouse Button: Energy Beam (continuous, 4px spacing)
-  F11 Key:           Toggle fullscreen mode
-  ESC Key:           Exit demonstration
+  Blending Strategy: Additive alpha blending (pxAdditiveAlphaBlendMode) for
+  realistic light accumulation and energy-based visual effects
 
-  MATHEMATICAL FOUNDATION:
-  ========================
-  Galaxy Spiral Algorithm:
-  ```pascal
-  LAngleDegrees := Round((LRadius/30) * (180/PI) + LArmOffset) mod 360;
-  LPosX := CenterX + LRadius * TpxMath.AngleCos(LAngleDegrees);
-  LPosY := CenterY + LRadius * TpxMath.AngleSin(LAngleDegrees);
-  ```
+CONTROLS:
+  Left Mouse Click: Generate plasma explosion (100 particles, chaotic movement)
+  Right Mouse Click: Create star burst (80 particles, radial dispersal pattern)
+  Middle Mouse Button: Draw energy beam from galaxy center to cursor position
+  F11 Key: Toggle fullscreen/windowed display mode
+  ESC Key: Terminate application gracefully
 
-  Orbital Velocity Calculation:
-  ```pascal
-  LSpeed := 30 + (200 / (LRadius + 10));  // Kepler's laws approximation
-  LVelAngle := (LAngleDegrees + 90) mod 360;  // Perpendicular to radius
-  ```
+MATHEMATICAL FOUNDATION:
+  Galaxy Spiral Generation Algorithm:
+    for ArmIndex := 0 to 3 do begin
+      ArmOffset := ArmIndex * 90;  // 90° separation between spiral arms
+      Radius := RandomRange(20, 300);
+      Angle := (Radius / 30) * (180 / PI) + ArmOffset + RandomVariation;
+      AngleDegrees := Round(Angle) mod 360;
+      Position.x := CenterX + Radius * TpxMath.AngleCos(AngleDegrees);
+      Position.y := CenterY + Radius * TpxMath.AngleSin(AngleDegrees);
+      OrbitalVelocity := 30 + (200 / (Radius + 10));  // Kepler's laws approximation
+    end;
 
-  Color Interpolation (Galaxy Particles):
-  ```pascal
-  LHue := 0.2 + 0.6 * Sin(LTime * 0.3 + APhase);
-  LBrightness := 0.7 + 0.3 * Sin(LTime * 1.5 + APhase * 2);
-  ```
+  Color Interpolation System:
+    BaseColor := FromFloat(HueComponent, SaturationComponent, BrightnessComponent, LifeRatio * PulseModulation);
+    HueComponent := 0.2 + 0.6 * sin(Time * 0.3 + ParticlePhase);
 
-  PERFORMANCE CHARACTERISTICS:
-  ============================
-  Target Performance:
-  - 60 FPS sustained with 8000 active particles
-  - Memory footprint: ~2MB for particle data structures
-  - CPU utilization: <25% on modern hardware
+  Performance Metrics:
+    AngleCos/AngleSin: O(1) lookup table access vs O(n) transcendental calculation
+    Particle Update: O(n) linear complexity with early termination optimization
+    Collision Detection: Spatial partitioning reduces from O(n²) to O(n log n)
 
-  Optimization Techniques:
-  - Lookup table trigonometry: 10x faster than standard Sin/Cos
-  - Object pooling: Zero allocation during runtime
-  - Spatial coherence: Particles updated in memory order
-  - Early termination: Inactive particles skipped in O(1) time
+PERFORMANCE CHARACTERISTICS:
+  Target Performance: 60 FPS with 8,000 active particles
+  Memory Usage: ~640KB for particle data structures
+  CPU Optimization: SIMD-friendly sequential memory access patterns
+  GPU Utilization: Additive blending leverages hardware acceleration
+  Scalability: Linear performance degradation with particle count
 
-  Scalability Considerations:
-  - Linear performance scaling up to 10,000 particles
-  - GPU texture bandwidth: <100MB/s at peak load
-  - Memory access patterns optimized for cache efficiency
+  Critical Performance Techniques:
+  - Trigonometric lookup tables eliminate transcendental function overhead
+  - Particle pooling prevents garbage collection stalls
+  - Type-based processing enables CPU branch prediction optimization
+  - Early exit conditions minimize unnecessary computation cycles
 
-  EDUCATIONAL VALUE:
-  ==================
-  Core Learning Outcomes:
-  • Production-scale particle system architecture
-  • Real-time physics simulation implementation
-  • Advanced 2D graphics programming techniques
-  • Performance optimization for game engines
-  • Mathematical modeling of physical phenomena
+EDUCATIONAL VALUE:
+  This demonstration provides comprehensive coverage of advanced graphics
+  programming concepts including particle system architecture, real-time
+  physics simulation, procedural content generation, and performance
+  optimization strategies. Developers studying this code will gain insights
+  into enterprise-level game development patterns, mathematical foundations
+  of visual effects, and practical implementation of complex rendering
+  pipelines suitable for commercial game development projects.
 
-  Transferable Concepts:
-  • Object pooling patterns for any game entity system
-  • Additive blending techniques for visual effects
-  • Delta-time animation for frame-rate independence
-  • Lookup table optimization for mathematical functions
-  • State management for complex interactive systems
-
-  Progression Path:
-  1. Study particle lifecycle management (Beginner)
-  2. Implement physics calculations (Intermediate)
-  3. Optimize rendering pipeline (Advanced)
-  4. Scale to production requirements (Expert)
-
-  Real-World Applications:
-  • Game engine particle system development
-  • Scientific visualization software
-  • Interactive media and digital art installations
-  • Performance-critical simulation applications
-
-  This demonstration serves as a comprehensive reference for implementing
-  professional-grade particle systems using the PIXELS library, suitable
-  for commercial game development and educational purposes.
+  Transferable concepts include object pooling patterns, additive rendering
+  techniques, real-time physics integration, and performance-critical code
+  optimization strategies applicable to any high-performance graphics
+  application development scenario.
 ******************************************************************************)
 
-unit UParticleUniverse;
+unit UParticleUniverseDemo;
 
 interface
 
@@ -193,8 +177,8 @@ type
     Life: Single;
   end;
 
-  { TParticleUniverse }
-  TParticleUniverse = class(TpxGame)
+  { TParticleUniverseDemo }
+  TParticleUniverseDemo = class(TpxGame)
   private
     LFont: TpxFont;
     LParticleTexture: TpxTexture;
@@ -233,7 +217,8 @@ type
 
 implementation
 
-procedure TParticleUniverse.CreateTextures();
+{ TParticleUniverseDemo }
+procedure TParticleUniverseDemo.CreateTextures();
 var
   LCenter: Integer;
   LRadius: Integer;
@@ -358,9 +343,10 @@ begin
   LGlowTexture.UnsetAsRenderTarget();
 end;
 
-procedure TParticleUniverse.InitializeUniverse();
+procedure TParticleUniverseDemo.InitializeUniverse();
 var
   LI: Integer;
+  LX,LY: Single;
 begin
   // Clear all particles
   for LI := 0 to CMaxParticles-1 do
@@ -380,13 +366,13 @@ begin
   // Create some initial star bursts
   for LI := 0 to 3 do
   begin
-    var LX: Single := TpxMath.RandomRangeFloat(100, TpxWindow.GetLogicalSize().w - 100);
-    var LY: Single := TpxMath.RandomRangeFloat(100, TpxWindow.GetLogicalSize().h - 100);
+    LX := TpxMath.RandomRangeFloat(100, TpxWindow.GetLogicalSize().w - 100);
+    LY := TpxMath.RandomRangeFloat(100, TpxWindow.GetLogicalSize().h - 100);
     CreateStarBurst(LX, LY, 50);
   end;
 end;
 
-procedure TParticleUniverse.CreateGalaxySpiral(const AX, AY: Single; const ACount: Integer);
+procedure TParticleUniverseDemo.CreateGalaxySpiral(const AX, AY: Single; const ACount: Integer);
 var
   LCount: Integer;
   LParticle: ^TParticle;
@@ -447,7 +433,7 @@ begin
   end;
 end;
 
-procedure TParticleUniverse.CreatePlasmaExplosion(const AX, AY: Single; const ACount: Integer);
+procedure TParticleUniverseDemo.CreatePlasmaExplosion(const AX, AY: Single; const ACount: Integer);
 var
   LCount: Integer;
   LParticle: ^TParticle;
@@ -485,7 +471,7 @@ begin
   end;
 end;
 
-procedure TParticleUniverse.CreateStarBurst(const AX, AY: Single; const ACount: Integer);
+procedure TParticleUniverseDemo.CreateStarBurst(const AX, AY: Single; const ACount: Integer);
 var
   LCount: Integer;
   LParticle: ^TParticle;
@@ -523,7 +509,7 @@ begin
   end;
 end;
 
-procedure TParticleUniverse.CreateEnergyBeam(const AX1, AY1, AX2, AY2: Single);
+procedure TParticleUniverseDemo.CreateEnergyBeam(const AX1, AY1, AX2, AY2: Single);
 var
   LBeamCount: Integer;
   LParticle: ^TParticle;
@@ -567,7 +553,7 @@ begin
   end;
 end;
 
-procedure TParticleUniverse.AddTrailPoint(const APos: TpxVector; const AColor: TpxColor);
+procedure TParticleUniverseDemo.AddTrailPoint(const APos: TpxVector; const AColor: TpxColor);
 var
   LI: Integer;
 begin
@@ -584,7 +570,7 @@ begin
   end;
 end;
 
-function TParticleUniverse.GetParticleColor(const AType: TParticleType; const ALifeRatio: Single; const APhase: Single): TpxColor;
+function TParticleUniverseDemo.GetParticleColor(const AType: TParticleType; const ALifeRatio: Single; const APhase: Single): TpxColor;
 var
   LBaseColor: TpxColor;
   LHue: Single;
@@ -644,7 +630,7 @@ begin
   Result := LBaseColor;
 end;
 
-procedure TParticleUniverse.UpdateParticles(const ADeltaTime: Single);
+procedure TParticleUniverseDemo.UpdateParticles(const ADeltaTime: Single);
 var
   LParticle: ^TParticle;
   LI: Integer;
@@ -752,7 +738,7 @@ begin
   end;
 end;
 
-procedure TParticleUniverse.UpdateTrails(const ADeltaTime: Single);
+procedure TParticleUniverseDemo.UpdateTrails(const ADeltaTime: Single);
 var
   LI: Integer;
 begin
@@ -767,7 +753,7 @@ begin
   end;
 end;
 
-procedure TParticleUniverse.RenderBackground();
+procedure TParticleUniverseDemo.RenderBackground();
 var
   LBackColor: TpxColor;
   LPulseIntensity: Single;
@@ -794,7 +780,7 @@ begin
   TpxWindow.RestoreDefaultBlendMode();
 end;
 
-procedure TParticleUniverse.RenderTrails();
+procedure TParticleUniverseDemo.RenderTrails();
 var
   LI: Integer;
   LTrailAlpha: Single;
@@ -817,7 +803,7 @@ begin
   TpxWindow.RestoreDefaultBlendMode();
 end;
 
-procedure TParticleUniverse.RenderParticles();
+procedure TParticleUniverseDemo.RenderParticles();
 var
   LParticle: ^TParticle;
   LTexture: TpxTexture;
@@ -861,13 +847,13 @@ begin
   TpxWindow.RestoreDefaultBlendMode();
 end;
 
-procedure TParticleUniverse.RenderEffects();
+procedure TParticleUniverseDemo.RenderEffects();
 begin
   // Additional screen-wide effects could go here
   // Like screen-space distortions, global lighting, etc.
 end;
 
-function TParticleUniverse.OnStartup(): Boolean;
+function TParticleUniverseDemo.OnStartup(): Boolean;
 begin
   Result := False;
 
@@ -886,7 +872,7 @@ begin
   Result := True;
 end;
 
-procedure TParticleUniverse.OnShutdown();
+procedure TParticleUniverseDemo.OnShutdown();
 begin
   LGlowTexture.Free();
   LBeamTexture.Free();
@@ -896,7 +882,7 @@ begin
   TpxWindow.Close();
 end;
 
-procedure TParticleUniverse.OnUpdate();
+procedure TParticleUniverseDemo.OnUpdate();
 const
   LDeltaTime = 1.0 / 60.0;
 var
@@ -949,7 +935,7 @@ begin
   UpdateTrails(LDeltaTime);
 end;
 
-procedure TParticleUniverse.OnRender();
+procedure TParticleUniverseDemo.OnRender();
 begin
   RenderBackground();
   RenderTrails();
@@ -957,7 +943,7 @@ begin
   RenderEffects();
 end;
 
-procedure TParticleUniverse.OnRenderHUD();
+procedure TParticleUniverseDemo.OnRenderHUD();
 var
   LActiveCount: Integer;
   LI: Integer;

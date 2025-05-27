@@ -177,21 +177,21 @@ type
     class procedure SmoothMove(var AValue: Single; const AAmount, AMax, ADrag: Single); static;
     class function  Lerp(const AFrom, ATo, ATime: Double): Double; static;
 
-    class function PointInRectangle(const APoint: TpxVector; const ARect: TpxRect): Boolean;
-    class function PointInCircle(const APoint, ACenter: TpxVector; const ARadius: Single): Boolean;
-    class function PointInTriangle(const APoint, APoint1, APoint2, APoint3: TpxVector): Boolean;
-    class function CirclesOverlap(const ACenter1: TpxVector; const ARadius1: Single; const ACenter2: TpxVector; const ARadius2: Single): Boolean;
-    class function CircleInRectangle(const ACenter: TpxVector; const ARadius: Single; const ARect: TpxRect): Boolean;
-    class function RectanglesOverlap(const ARect1, ARect2: TpxRect): Boolean;
-    class function RectangleIntersection(const ARect1, ARect2: TpxRect): TpxRect;
-    class function LineIntersection(const AX1, AY1, AX2, AY2, AX3, AY3, AX4, AY4: Integer; var AX: Integer; var AY: Integer): TpxLineIntersection;
-    class function PointToLineDistance(const APoint, ALineStart, ALineEnd: TpxVector): Single;
-    class function PointToLineSegmentDistance(const APoint, ALineStart, ALineEnd: TpxVector): Single;
-    class function LineSegmentIntersectsCircle(const ALineStart, ALineEnd, ACenter: TpxVector; const ARadius: Single): Boolean;
-    class function ClosestPointOnLineSegment(const APoint, ALineStart, ALineEnd: TpxVector): TpxVector;
-    class function OBBsOverlap(const AOBB1, AOBB2: TpxOBB): Boolean;
-    class function PointInConvexPolygon(const APoint: TpxVector; const AVertices: array of TpxVector): Boolean;
-    class function RayIntersectsAABB(const ARay: TpxRay; const ARect: TpxRect; out ADistance: Single): Boolean;
+    class function  PointInRectangle(const APoint: TpxVector; const ARect: TpxRect): Boolean;
+    class function  PointInCircle(const APoint, ACenter: TpxVector; const ARadius: Single): Boolean;
+    class function  PointInTriangle(const APoint, APoint1, APoint2, APoint3: TpxVector): Boolean;
+    class function  CirclesOverlap(const ACenter1: TpxVector; const ARadius1: Single; const ACenter2: TpxVector; const ARadius2: Single): Boolean;
+    class function  CircleInRectangle(const ACenter: TpxVector; const ARadius: Single; const ARect: TpxRect): Boolean;
+    class function  RectanglesOverlap(const ARect1, ARect2: TpxRect): Boolean;
+    class function  RectangleIntersection(const ARect1, ARect2: TpxRect): TpxRect;
+    class function  LineIntersection(const AX1, AY1, AX2, AY2, AX3, AY3, AX4, AY4: Integer; var AX: Integer; var AY: Integer): TpxLineIntersection;
+    class function  PointToLineDistance(const APoint, ALineStart, ALineEnd: TpxVector): Single;
+    class function  PointToLineSegmentDistance(const APoint, ALineStart, ALineEnd: TpxVector): Single;
+    class function  LineSegmentIntersectsCircle(const ALineStart, ALineEnd, ACenter: TpxVector; const ARadius: Single): Boolean;
+    class function  ClosestPointOnLineSegment(const APoint, ALineStart, ALineEnd: TpxVector): TpxVector;
+    class function  OBBsOverlap(const AOBB1, AOBB2: TpxOBB): Boolean;
+    class function  PointInConvexPolygon(const APoint: TpxVector; const AVertices: array of TpxVector): Boolean;
+    class function  RayIntersectsAABB(const ARay: TpxRay; const ARect: TpxRect; out ADistance: Single): Boolean;
 
     class function  EaseValue(const ACurrentTime, AStartValue, AChangeInValue, ADuration: Double; const AEase: TpxEase): Double; static;
     class function  EasePosition(const AStartPos, AEndPos, ACurrentPos: Double; const AEase: TpxEase): Double; static;
@@ -1423,7 +1423,7 @@ begin
   if Result > 100 then Result := 100;
 end;
 
-// 1. Normalized easing - returns 0.0 to 1.0 curve value
+// Normalized easing - returns 0.0 to 1.0 curve value
 class function TpxMath.EaseNormalized(const AProgress: Double; const AEase: TpxEase): Double;
 var
   LClampedProgress: Double;
@@ -1437,7 +1437,7 @@ begin
   Result := EaseValue(LClampedProgress, 0.0, 1.0, 1.0, AEase);
 end;
 
-// 2. Interpolate between any two values with easing
+// Interpolate between any two values with easing
 class function TpxMath.EaseLerp(const AFrom, ATo: Double; const AProgress: Double; const AEase: TpxEase): Double;
 var
   LNormalizedCurve: Double;
@@ -1446,14 +1446,14 @@ begin
   Result := AFrom + (ATo - AFrom) * LNormalizedCurve;
 end;
 
-// 3. Vector/Point easing
+// Vector/Point easing
 class function TpxMath.EaseVector(const AFrom, ATo: TpxVector; const AProgress: Double; const AEase: TpxEase): TpxVector;
 begin
   Result.X := EaseLerp(AFrom.X, ATo.X, AProgress, AEase);
   Result.Y := EaseLerp(AFrom.Y, ATo.Y, AProgress, AEase);
 end;
 
-// 4. Smooth interpolation (smoothstep function - very commonly used)
+// Smooth interpolation (smoothstep function - very commonly used)
 class function TpxMath.EaseSmooth(const AFrom, ATo: Double; const AProgress: Double): Double;
 var
   LClampedProgress: Double;
@@ -1470,7 +1470,7 @@ begin
   Result := AFrom + (ATo - AFrom) * LSmoothProgress;
 end;
 
-// 5. Angle easing (handles 360° wrapping)
+// Angle easing (handles 360° wrapping)
 class function TpxMath.EaseAngle(const AFrom, ATo: Double; const AProgress: Double; const AEase: TpxEase): Double;
 var
   LDifference: Double;
@@ -1495,7 +1495,7 @@ begin
     Result := Result - 360;
 end;
 
-// 6. Multi-keyframe easing (animate through multiple points)
+// Multi-keyframe easing (animate through multiple points)
 class function TpxMath.EaseKeyframes(const AKeyframes: array of Double; const AProgress: Double; const AEase: TpxEase): Double;
 var
   LSegmentCount: Integer;
@@ -1535,7 +1535,7 @@ begin
   Result := EaseLerp(AKeyframes[LSegmentIndex], AKeyframes[LSegmentIndex + 1], LSegmentProgress, AEase);
 end;
 
-// 7. Looping/repeating animations
+// Looping/repeating animations
 class function TpxMath.EaseLoop(const ATime, ADuration: Double; const AEase: TpxEase; const ALoopMode: TpxLoopMode): Double;
 var
   LNormalizedTime: Double;
@@ -1581,7 +1581,7 @@ begin
   end;
 end;
 
-// 8. Stepped/discrete easing (for pixel-perfect or discrete animations)
+// Stepped/discrete easing (for pixel-perfect or discrete animations)
 class function TpxMath.EaseStepped(const AFrom, ATo: Double; const AProgress: Double; const ASteps: Integer; const AEase: TpxEase): Double;
 var
   LStepSize: Double;
@@ -1604,7 +1604,7 @@ begin
   Result := EaseLerp(AFrom, ATo, LStepProgress, AEase);
 end;
 
-// 9. Spring-based easing (more natural physics motion)
+// Spring-based easing (more natural physics motion)
 class function TpxMath.EaseSpring(const ATime: Double; const AAmplitude: Double = 1.0; const APeriod: Double = 0.3): Double;
 var
   LDampening: Double;
@@ -1627,7 +1627,7 @@ begin
   Result := 1 - (AAmplitude * Power(2, -10 * ATime) * Sin((ATime - LDampening / 4) * LAngularFreq));
 end;
 
-// 10. Bezier curve easing (custom curves)
+// Bezier curve easing (custom curves)
 class function TpxMath.EaseBezier(const AProgress: Double; const AX1, AY1, AX2, AY2: Double): Double;
 var
   LT: Double;
@@ -1645,7 +1645,7 @@ begin
             LT * LT * LT;
 end;
 
-// 11. Easing with overshoot/undershoot control
+// Easing with overshoot/undershoot control
 class function TpxMath.EaseWithParams(const AProgress: Double; const AEase: TpxEase; const AParams: TpxEaseParams): Double;
 begin
   case AEase of

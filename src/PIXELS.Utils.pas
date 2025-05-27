@@ -67,6 +67,8 @@ type
   public
     class procedure FatalError(const AMsg: string; const AArgs: array of const); static;
     class function  AsUTF8(const AText: string): Pointer; static;
+    class procedure ProcessMessages();
+
   end;
 
 implementation
@@ -98,6 +100,17 @@ end;
 class function  TpxUtils.AsUTF8(const AText: string): Pointer;
 begin
   Result := FMarshaller.AsUtf8(AText).ToPointer;
+end;
+
+class procedure TpxUtils.ProcessMessages();
+var
+  LMsg: TMsg;
+begin
+  while Integer(PeekMessage(LMsg, 0, 0, 0, PM_REMOVE)) <> 0 do
+  begin
+    TranslateMessage(LMsg);
+    DispatchMessage(LMsg);
+  end;
 end;
 
 end.
