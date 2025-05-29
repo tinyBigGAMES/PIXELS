@@ -204,6 +204,12 @@ The `examples` directory contains sample projects demonstrating various PIXELS f
 - **Collision Detection**: Different collision methods comparison
 - **Camera Effects**: Camera movement, zoom, and shake effects
 
+## 📺 Media
+#### Videos📹  
+[![🎮 PIXELS in Action - 2D Game Development Made Easy in Delphi! 🚀](https://img.youtube.com/vi/vBlyYL0x2oQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=vBlyYL0x2oQ)  
+<small>*click image to [open video](https://www.youtube.com/watch?v=vBlyYL0x2oQ)*</small>
+
+
 ## 🛠️ Support and Resources
 
 - 🐞 **Report Issues** via the [Issue Tracker](https://github.com/tinyBigGAMES/PIXELS/issues)
