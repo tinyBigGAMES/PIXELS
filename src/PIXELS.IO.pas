@@ -51,22 +51,92 @@ uses
   PIXELS.Base;
 
 const
-  { CpsSeek }
-  CpxSeekStart   = ALLEGRO_SEEK_SET;
-  CpxSeekCurrent = ALLEGRO_SEEK_CUR;
-  CpxSeekEnd     = ALLEGRO_SEEK_END;
+  /// <summary>
+  /// Default password used for ZIP file encryption/decryption operations in PIXELS
+  /// </summary>
+  /// <remarks>
+  /// This is a complex default password that provides reasonable security for game assets.
+  /// While not intended for high-security applications, it prevents casual access to game resources.
+  /// You can override this password by providing your own when calling ZIP-related functions.
+  /// </remarks>
+  /// <seealso cref="TpxFile.BuildZip"/>
+  /// <seealso cref="TpxFile.OpenZip"/>
 
-  { CpxDefaultZipPassword }
   CpxDefaultZipPassword = 'ep8uNv%DyjKc#$@jQ.<g%zw[k6T,7:4N2DWC>Y]+n;(r3yj@JcF?Ru=s5LbM`paPf!%AG!7TASJJ4#sSTt';
 
 type
-  { PpxFile }
+  /// <summary>
+  /// Enumeration of file seeking modes for positioning the file pointer
+  /// </summary>
+  /// <remarks>
+  /// These modes determine how the file position is calculated during seek operations.
+  /// Works with both regular disk files and ZIP archive entries.
+  /// </remarks>
+  /// <seealso cref="TpxFile.Seek"/>
+  TpxSeekMode = (
+    /// <summary>
+    /// Seek from the beginning of the file (absolute position)
+    /// </summary>
+    smStart   = ALLEGRO_SEEK_SET,
+    /// <summary>
+    /// Seek relative to the current file position
+    /// </summary>
+    smCurrent = ALLEGRO_SEEK_CUR,
+    /// <summary>
+    /// Seek from the end of the file (negative offsets move backward)
+    /// </summary>
+    smEnd     = ALLEGRO_SEEK_END
+  );
+
+  /// <summary>
+  /// Opaque pointer type representing a file handle in the PIXELS file system
+  /// </summary>
+  /// <remarks>
+  /// This type encapsulates the underlying Allegro file handle and should not be manipulated directly.
+  /// Always use TpxFile class methods to work with file handles.
+  /// File handles must be properly closed using TpxFile.Close to prevent resource leaks.
+  /// </remarks>
+  /// <seealso cref="TpxFile"/>
   PpxFile = type PALLEGRO_FILE;
 
-  { TpxZipFileBuildProgressCallback }
-  TpxZipFileBuildProgressCallback = reference to procedure(const AFilename: string; const AProgress: Integer; const ANewFile: Boolean; const AUserData: Pointer);
-
-  { TpxFile }
+  /// <summary>
+  /// Static class providing comprehensive file I/O operations for disk files, memory buffers, and ZIP archives
+  /// </summary>
+  /// <remarks>
+  /// TpxFile is the primary interface for all file operations in PIXELS. It supports:
+  /// - Standard disk file operations (read, write, seek)
+  /// - Memory-based file operations for embedded resources
+  /// - ZIP archive creation and extraction with password protection
+  /// - Cross-platform file access with consistent behavior
+  ///
+  /// All file operations are performed through static methods, and file handles must be
+  /// properly closed using the Close method to prevent resource leaks.
+  ///
+  /// The class automatically handles different file formats and provides transparent
+  /// access to files whether they're on disk, in memory, or within ZIP archives.
+  /// </remarks>
+  /// <example>
+  /// <code>
+  /// // Open a file from disk
+  /// LFile := TpxFile.OpenDisk('data/texture.png', 'rb');
+  /// if Assigned(LFile) then
+  /// try
+  ///   LSize := TpxFile.Size(LFile);
+  ///   // Use the file...
+  /// finally
+  ///   TpxFile.Close(LFile);
+  /// end;
+  ///
+  /// // Open a file from ZIP archive
+  /// LFile := TpxFile.OpenZip('assets.zip', 'images/player.png');
+  /// if Assigned(LFile) then
+  /// try
+  ///   // Load texture from ZIP file...
+  /// finally
+  ///   TpxFile.Close(LFile);
+  /// end;
+  /// </code>
+  /// </example>
   TpxFile = class(TpxStaticObject)
   private class var
     FZipFI: ALLEGRO_FILE_INTERFACE;
@@ -74,18 +144,319 @@ type
     class constructor Create();
     class destructor Destroy();
   public
+    /// <summary>
+    /// Opens a file from a memory buffer for reading or writing
+    /// </summary>
+    /// <param name="AMemory">Pointer to the memory buffer containing the file data</param>
+    /// <param name="ASize">Size of the memory buffer in bytes</param>
+    /// <param name="AMode">File access mode (e.g., 'rb' for read binary, 'wb' for write binary)</param>
+    /// <returns>File handle if successful, nil if the operation failed</returns>
+    /// <remarks>
+    /// This method allows you to treat a memory buffer as if it were a file, enabling
+    /// you to use standard file operations on embedded resources or dynamically generated data.
+    /// The memory buffer must remain valid for the lifetime of the file handle.
+    /// Common modes: 'rb' (read binary), 'wb' (write binary), 'r' (read text), 'w' (write text).
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// // Load data from a resource and open as file
+    /// LResStream := TResourceStream.Create(HInstance, 'MYDATA', RT_RCDATA);
+    /// try
+    ///   LFile := TpxFile.OpenMemory(LResStream.Memory, LResStream.Size, 'rb');
+    ///   // Use the file handle...
+    /// finally
+    ///   LResStream.Free;
+    /// end;
+    /// </code>
+    /// </example>
+    /// <seealso cref="OpenDisk"/>
+    /// <seealso cref="Close"/>
     class function OpenMemory(const AMemory: Pointer; const ASize: Int64; const AMode: string): PpxFile; static;
+
+    /// <summary>
+    /// Opens a file from the disk file system
+    /// </summary>
+    /// <param name="AFilename">Path to the file to open (relative or absolute)</param>
+    /// <param name="AMode">File access mode (e.g., 'rb' for read binary, 'wb' for write binary)</param>
+    /// <returns>File handle if successful, nil if the file could not be opened</returns>
+    /// <remarks>
+    /// This is the standard method for opening disk files. The filename can be relative to the
+    /// application directory or an absolute path. The function supports all standard C-style
+    /// file modes including text and binary modes.
+    /// Common modes: 'rb' (read binary), 'wb' (write binary), 'r' (read text), 'w' (write text),
+    /// 'a' (append), 'r+' (read/write), 'w+' (create read/write).
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// // Open file for reading
+    /// LFile := TpxFile.OpenDisk('config.ini', 'r');
+    /// if Assigned(LFile) then
+    /// try
+    ///   // Read configuration data...
+    /// finally
+    ///   TpxFile.Close(LFile);
+    /// end;
+    ///
+    /// // Open file for writing
+    /// LFile := TpxFile.OpenDisk('savegame.dat', 'wb');
+    /// if Assigned(LFile) then
+    /// try
+    ///   // Write save data...
+    /// finally
+    ///   TpxFile.Close(LFile);
+    /// end;
+    /// </code>
+    /// </example>
+    /// <seealso cref="OpenMemory"/>
+    /// <seealso cref="OpenZip"/>
     class function OpenDisk(const AFilename, AMode: string): PpxFile; static;
 
-    class function BuildZip(const AZipFilename, ADirectoryName: string; const ACallback: TpxZipFileBuildProgressCallback=nil; const AUserData: Pointer=nil; const APassword: string=CpxDefaultZipPassword): Boolean; static;
+    /// <summary>
+    /// Creates a password-protected ZIP archive from a directory structure
+    /// </summary>
+    /// <param name="AZipFilename">Path where the ZIP file will be created</param>
+    /// <param name="ADirectoryName">Directory containing files to add to the ZIP</param>
+    /// <param name="APassword">Password for ZIP encryption (defaults to CpxDefaultZipPassword)</param>
+    /// <returns>True if the ZIP file was created successfully, False otherwise</returns>
+    /// <remarks>
+    /// This method recursively adds all files from the specified directory to a new ZIP archive.
+    /// All files are encrypted using the provided password. The directory structure is preserved
+    /// within the ZIP file. This is commonly used to package game assets into a single encrypted file.
+    /// The operation may take time for large directories and will call the OnZipFileBuildProgress
+    /// callback if available in the current game instance.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// // Create a ZIP file from game assets
+    /// if TpxFile.BuildZip('assets.zip', 'GameAssets\', 'MySecretPassword') then
+    ///   ShowMessage('Assets packed successfully')
+    /// else
+    ///   ShowMessage('Failed to create ZIP file');
+    /// </code>
+    /// </example>
+    /// <seealso cref="OpenZip"/>
+    /// <seealso cref="CpxDefaultZipPassword"/>
+    class function BuildZip(const AZipFilename, ADirectoryName: string; const APassword: string=CpxDefaultZipPassword): Boolean; static;
+
+    /// <summary>
+    /// Opens a file from within a password-protected ZIP archive
+    /// </summary>
+    /// <param name="AZipFilename">Path to the ZIP file</param>
+    /// <param name="AFilename">Path of the file within the ZIP archive</param>
+    /// <param name="APassword">Password for ZIP decryption (defaults to CpxDefaultZipPassword)</param>
+    /// <returns>File handle if successful, nil if the file could not be opened</returns>
+    /// <remarks>
+    /// This method allows transparent access to files stored within ZIP archives. The file path
+    /// within the ZIP should use forward slashes (/) as separators regardless of platform.
+    /// The ZIP file must have been created with the same password for successful decryption.
+    /// The returned file handle can be used with all standard file operations like Read, Seek, etc.
+    /// This is commonly used for loading game assets from encrypted archive files.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// // Load a texture from ZIP archive
+    /// LFile := TpxFile.OpenZip('assets.zip', 'textures/player.png', 'MyPassword');
+    /// if Assigned(LFile) then
+    /// try
+    ///   LTexture := TpxTexture.Create;
+    ///   LTexture.Load(LFile, '.png', pxHDTexture);
+    /// finally
+    ///   TpxFile.Close(LFile);
+    /// end;
+    /// </code>
+    /// </example>
+    /// <seealso cref="BuildZip"/>
+    /// <seealso cref="CpxDefaultZipPassword"/>
     class function OpenZip(const AZipFilename, AFilename: string; const APassword: string=CpxDefaultZipPassword): PpxFile; static;
 
+    /// <summary>
+    /// Closes a file handle and releases associated resources
+    /// </summary>
+    /// <param name="AFile">File handle to close</param>
+    /// <returns>True if the file was closed successfully, False otherwise</returns>
+    /// <remarks>
+    /// This method must be called for every file handle opened with OpenMemory, OpenDisk, or OpenZip
+    /// to prevent resource leaks. After calling Close, the file handle becomes invalid and should
+    /// not be used for further operations. It's safe to call Close on a nil file handle.
+    /// Always use try/finally blocks to ensure files are properly closed even if exceptions occur.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// LFile := TpxFile.OpenDisk('data.txt', 'r');
+    /// if Assigned(LFile) then
+    /// try
+    ///   // Use the file...
+    /// finally
+    ///   TpxFile.Close(LFile);  // Always close in finally block
+    /// end;
+    /// </code>
+    /// </example>
+    /// <seealso cref="OpenMemory"/>
+    /// <seealso cref="OpenDisk"/>
+    /// <seealso cref="OpenZip"/>
     class function Close(const AFile: PpxFile): Boolean; static;
+
+    /// <summary>
+    /// Reads data from a file into a buffer
+    /// </summary>
+    /// <param name="AFile">File handle to read from</param>
+    /// <param name="AData">Pointer to buffer where data will be stored</param>
+    /// <param name="ASize">Number of bytes to read</param>
+    /// <returns>Actual number of bytes read (may be less than requested if EOF reached)</returns>
+    /// <remarks>
+    /// This method reads binary data from the current file position into the provided buffer.
+    /// The buffer must be large enough to hold the requested number of bytes. The file position
+    /// is advanced by the number of bytes actually read. If fewer bytes are read than requested,
+    /// it typically indicates the end of file has been reached.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// // Read file header
+    /// SetLength(LBuffer, 1024);
+    /// LBytesRead := TpxFile.Read(LFile, @LBuffer[0], 1024);
+    /// if LBytesRead > 0 then
+    ///   // Process the data...
+    /// </code>
+    /// </example>
+    /// <seealso cref="Write"/>
+    /// <seealso cref="Size"/>
+    /// <seealso cref="Pos"/>
     class function Read(const AFile: PpxFile; AData: Pointer; const ASize: UInt32): UInt32; static;
+
+    /// <summary>
+    /// Writes data from a buffer to a file
+    /// </summary>
+    /// <param name="AFile">File handle to write to</param>
+    /// <param name="AData">Pointer to buffer containing data to write</param>
+    /// <param name="ASize">Number of bytes to write</param>
+    /// <returns>Actual number of bytes written</returns>
+    /// <remarks>
+    /// This method writes binary data from the provided buffer to the file at the current position.
+    /// The file position is advanced by the number of bytes written. The file must have been opened
+    /// with a write mode ('w', 'wb', 'a', 'r+', etc.). For text files, consider the line ending
+    /// conversions that may occur on different platforms.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// // Write game save data
+    /// LData := 'SAVE_V1.0';
+    /// LBytesWritten := TpxFile.Write(LFile, PChar(LData), Length(LData));
+    /// if LBytesWritten = Length(LData) then
+    ///   // Write successful...
+    /// </code>
+    /// </example>
+    /// <seealso cref="Read"/>
+    /// <seealso cref="Pos"/>
     class function Write(const AFile: PpxFile; const AData: Pointer; const ASize: UInt32): UInt32; static;
+
+    /// <summary>
+    /// Gets the current position of the file pointer
+    /// </summary>
+    /// <param name="AFile">File handle to query</param>
+    /// <returns>Current file position in bytes from the beginning of the file</returns>
+    /// <remarks>
+    /// This method returns the current byte offset within the file where the next read or write
+    /// operation will occur. The position starts at 0 for the beginning of the file.
+    /// Use this with Seek to implement custom file navigation or to save and restore positions.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// // Save current position
+    /// LSavedPos := TpxFile.Pos(LFile);
+    ///
+    /// // Read some data...
+    /// TpxFile.Read(LFile, @LBuffer, SizeOf(LBuffer));
+    ///
+    /// // Restore position
+    /// TpxFile.Seek(LFile, LSavedPos, smStart);
+    /// </code>
+    /// </example>
+    /// <seealso cref="Seek"/>
+    /// <seealso cref="Size"/>
     class function Pos(const AFile: PpxFile): Int64; static;
-    class function Seek(const AFile: PpxFile; const AOffset: Int64; const AWhence: Int32): Boolean; static;
+
+    /// <summary>
+    /// Moves the file pointer to a specific position
+    /// </summary>
+    /// <param name="AFile">File handle to seek within</param>
+    /// <param name="AOffset">Byte offset for the seek operation</param>
+    /// <param name="AWhence">Seek mode determining how the offset is interpreted</param>
+    /// <returns>True if the seek operation was successful, False otherwise</returns>
+    /// <remarks>
+    /// This method repositions the file pointer for subsequent read/write operations.
+    /// The offset interpretation depends on the AWhence parameter:
+    /// - smStart: Absolute position from beginning of file
+    /// - smCurrent: Relative to current position (can be negative)
+    /// - smEnd: Relative to end of file (typically negative to move backward)
+    /// Seeking beyond the end of a file may extend the file when writing.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// // Seek to beginning of file
+    /// TpxFile.Seek(LFile, 0, smStart);
+    ///
+    /// // Skip 100 bytes forward
+    /// TpxFile.Seek(LFile, 100, smCurrent);
+    ///
+    /// // Go to 10 bytes before end
+    /// TpxFile.Seek(LFile, -10, smEnd);
+    /// </code>
+    /// </example>
+    /// <seealso cref="Pos"/>
+    /// <seealso cref="TpxSeekMode"/>
+    class function Seek(const AFile: PpxFile; const AOffset: Int64; const AWhence: TpxSeekMode): Boolean; static;
+
+    /// <summary>
+    /// Checks if the file pointer has reached the end of the file
+    /// </summary>
+    /// <param name="AFile">File handle to check</param>
+    /// <returns>True if at end of file, False if more data is available</returns>
+    /// <remarks>
+    /// This method tests whether the file position is at or beyond the end of the file.
+    /// It's commonly used in loops when reading file data to detect when all content
+    /// has been processed. Note that EOF may not be set until an actual read operation
+    /// attempts to read beyond the end of the file.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// // Read entire file in chunks
+    /// while not TpxFile.Eof(LFile) do
+    /// begin
+    ///   LBytesRead := TpxFile.Read(LFile, @LBuffer, SizeOf(LBuffer));
+    ///   if LBytesRead > 0 then
+    ///     ProcessChunk(@LBuffer, LBytesRead);
+    /// end;
+    /// </code>
+    /// </example>
+    /// <seealso cref="Read"/>
+    /// <seealso cref="Size"/>
     class function Eof(const AFile: PpxFile): Boolean; static;
+
+    /// <summary>
+    /// Gets the total size of the file in bytes
+    /// </summary>
+    /// <param name="AFile">File handle to query</param>
+    /// <returns>Total file size in bytes, or -1 if size cannot be determined</returns>
+    /// <remarks>
+    /// This method returns the complete size of the file in bytes. For ZIP archive entries,
+    /// this returns the uncompressed size of the file. The size is useful for allocating
+    /// buffers, calculating progress bars, or validating file integrity.
+    /// Note that the current file position does not affect the returned size.
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// // Allocate buffer for entire file
+    /// LFileSize := TpxFile.Size(LFile);
+    /// if LFileSize > 0 then
+    /// begin
+    ///   SetLength(LBuffer, LFileSize);
+    ///   LBytesRead := TpxFile.Read(LFile, @LBuffer[0], LFileSize);
+    ///   // Process entire file...
+    /// end;
+    /// </code>
+    /// </example>
+    /// <seealso cref="Read"/>
+    /// <seealso cref="Pos"/>
     class function Size(const AFile: PpxFile): Int64; static;
   end;
 
@@ -98,7 +469,8 @@ uses
   System.IOUtils,
   System.Classes,
   PIXELS.Console,
-  PIXELS.Utils;
+  PIXELS.Utils,
+  PIXELS.Game;
 
 type
   { TZipData }
@@ -287,12 +659,6 @@ begin
   inherited;
 end;
 
-procedure TpxFile_BuildZipFileProgress(const AFilename: string; const AProgress: Integer; const ANewFile: Boolean; const AUserData: Pointer);
-begin
-  if aNewFile then TpxConsole.PrintLn();
-  TpxConsole.Print(pxCR+'Adding %s(%d%%)...', [TPath.GetFileName(AFilename), aProgress]);
-end;
-
 class function TpxFile.OpenMemory(const AMemory: Pointer; const ASize: Int64; const AMode: string): PpxFile;
 begin
   Result := al_open_memfile(AMemory, ASize, TpxUtils.AsUTF8(AMode));
@@ -303,7 +669,7 @@ begin
   Result := al_fopen(TpxUtils.AsUTF8(AFilename), TpxUtils.AsUTF8(AMode));
 end;
 
-class function TpxFile.BuildZip(const AZipFilename, ADirectoryName: string; const ACallback: TpxZipFileBuildProgressCallback; const AUserData: Pointer; const APassword: string): Boolean;
+class function TpxFile.BuildZip(const AZipFilename, ADirectoryName: string; const APassword: string): Boolean;
 const
   CBufferSize = 1024*4;
 var
@@ -320,8 +686,6 @@ var
   LFileSize: Int64;
   LProgress: Single;
   LNewFile: Boolean;
-  LHandler: TpxZipFileBuildProgressCallback;
-  LUserData: Pointer;
   LBuffer: TArray<Byte>;
 
   function GetCRC32(aStream: System.Classes.TStream): uLong;
@@ -355,13 +719,6 @@ begin
 
   // create a zip file
   LZipFile := zipOpen64(LArchive, APPEND_STATUS_CREATE);
-
-  // init handler
-  LHandler := ACallback;
-  LUserData := AUserData;
-
-  if not Assigned(LHandler) then
-    LHandler := TpxFile_BuildZipFileProgress;
 
   // process zip file
   if LZipFile <> nil then
@@ -401,9 +758,9 @@ begin
           LProgress := 100.0 * (LFile.Position / LFileSize);
 
           // show progress
-          if Assigned(LHandler) then
+          if Assigned(GGame) then
           begin
-            LHandler(LFilename, Round(LProgress), LNewFile, LUserData);
+            GGame.OnZipFileBuildProgress(LFilename, Round(LProgress), LNewFile);
           end;
 
           LNewFile := False;
@@ -485,9 +842,9 @@ begin
   Result := al_ftell(AFile);
 end;
 
-class function TpxFile.Seek(const AFile: PpxFile; const AOffset: Int64; const AWhence: Int32): Boolean;
+class function TpxFile.Seek(const AFile: PpxFile; const AOffset: Int64; const AWhence: TpxSeekMode): Boolean;
 begin
-  Result := al_fseek(AFile, AOffset, AWhence);
+  Result := al_fseek(AFile, AOffset, Ord(AWhence));
 end;
 
 class function TpxFile.Eof(const AFile: PpxFile): Boolean;

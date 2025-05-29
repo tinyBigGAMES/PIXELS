@@ -121,6 +121,9 @@ type
 
 implementation
 
+uses
+  UCommon;
+
 const
   // Fixed: uses texture() instead of texture2D, and tint_color is set as vec3 uniform
   CFragmentShaderSource =
@@ -151,7 +154,7 @@ begin
 
   // Load texture
   FTexture := TpxTexture.Create();
-  LFile := TpxFile.OpenZip('Data.zip', 'res/sprites/brickwall.png');
+  LFile := TpxFile.OpenZip(CZipFilename, 'res/sprites/brickwall.png');
   if LFile <> nil then
   begin
     FTexture.Load(LFile, '.png', pxHDTexture, nil);

@@ -131,6 +131,9 @@ type
 
 implementation
 
+uses
+  UCommon;
+
 { TTextureParallaxDemo }
 function  TTextureParallaxDemo.OnStartup(): Boolean;
 var
@@ -149,26 +152,30 @@ begin
   FTexture[0].UnsetAsRenderTarget();
 
   FTexture[1] := TpxTexture.Create();
-  LFile := TpxFile.OpenZip('Data.zip', 'res/images/pixels.png');
+  LFile := TpxFile.OpenZip(CZipFilename, 'res/images/pixels.png');
   FTexture[1].Load(LFile, '.png', pxHDTexture, nil);
   TpxFile.Close(LFile);
 
   FTexture[2] := TpxTexture.Create();
-  LFile := TpxFile.OpenZip('Data.zip', 'res/backgrounds/nebula1.png');
+  LFile := TpxFile.OpenZip(CZipFilename, 'res/backgrounds/nebula1.png');
   FTexture[2].Load(LFile, '.png', pxHDTexture, nil);
   TpxFile.Close(LFile);
 
-  FTexture[3] := TpxTexture.LoadFromZip('Data.zip', 'res/backgrounds/space.png', pxHDTexture, nil);
+  FTexture[3] := TpxTexture.LoadFromZip(CZipFilename, 'res/backgrounds/space.png', pxHDTexture, nil);
 
   FPos.x := -50;
   FPos.y := 0;
   FPos.z := 0;
+
+  TpxAudio.PlayMusicFromZip(CZipFilename, 'res/music/song01.ogg', 1.0, pmLoop);
 
   Result := True;
 end;
 
 procedure TTextureParallaxDemo.OnShutdown();
 begin
+  TpxAudio.UnloadMusic();
+
   FTexture[3].Free();
   FTexture[2].Free();
   FTexture[1].Free();

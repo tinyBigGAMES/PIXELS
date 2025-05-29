@@ -121,7 +121,7 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="UTestbed.pas"/>
-        <DCCReference Include="..\..\src\PIXELS.pas"/>
+        <DCCReference Include="..\..\src\PIXELS.Core.pas"/>
         <DCCReference Include="..\..\src\PIXELS.Audio.pas"/>
         <DCCReference Include="..\..\src\PIXELS.Console.pas"/>
         <DCCReference Include="..\..\src\PIXELS.Deps.pas"/>
@@ -143,6 +143,11 @@
         <DCCReference Include="UTextureTintShaderDemo.pas"/>
         <DCCReference Include="UBuildZipDemo.pas"/>
         <DCCReference Include="UMenu.pas"/>
+        <DCCReference Include="..\..\src\PIXELS.Sprite.pas"/>
+        <DCCReference Include="USpriteDemo.pas"/>
+        <DCCReference Include="UVideoDemo.pas"/>
+        <DCCReference Include="UCommon.pas"/>
+        <DCCReference Include="..\..\src\PIXELS.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

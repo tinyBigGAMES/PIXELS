@@ -100,10 +100,13 @@ type
   TBuildZipDemo = class(TpxGame)
   public
     procedure Run(); override;
+    procedure OnZipFileBuildProgress(const AFilename: string; const AProgress: Integer; const ANewFile: Boolean); override;
   end;
 
-
 implementation
+
+uses
+  UCommon;
 
 { TBuildZipDemo }
 procedure TBuildZipDemo.Run();
@@ -111,18 +114,19 @@ begin
   TpxConsole.ClearScreen();
   TpxConsole.SetTitle('PIXELS Build Zip Demo');
 
-  if TpxFile.BuildZip('Data.zip', 'res',
-    procedure (const AFilename: string; const AProgress: Integer; const ANewFile: Boolean; const AUserData: Pointer)
-    begin
-      if aNewFile then TpxConsole.PrintLn();
-      TpxConsole.SetForegroundColor(pxGREEN);
-      TpxConsole.Print(pxCR+'Adding %s(%d%%)...', [TPath.GetFileName(AFilename), aProgress]);
-    end) then
+  if TpxFile.BuildZip(CZipFilename, 'res') then
     TpxConsole.PrintLn(pxCSIFGCyan+pxCRLF+'Success!')
   else
     TpxConsole.PrintLn(pxCSIFGRed+pxCRLF+'Failed!');
 
   TpxConsole.Pause(True);
+end;
+
+procedure TBuildZipDemo.OnZipFileBuildProgress(const AFilename: string; const AProgress: Integer; const ANewFile: Boolean);
+begin
+  if aNewFile then TpxConsole.PrintLn();
+  TpxConsole.SetForegroundColor(pxGREEN);
+  TpxConsole.Print(pxCR+'Adding %s(%d%%)...', [TPath.GetFileName(AFilename), aProgress]);
 end;
 
 end.

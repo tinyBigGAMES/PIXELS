@@ -67,7 +67,8 @@ type
   public
     class procedure FatalError(const AMsg: string; const AArgs: array of const); static;
     class function  AsUTF8(const AText: string): Pointer; static;
-    class procedure ProcessMessages();
+    class procedure ProcessMessages(); static;
+    class function LogarithmicVolume(const ALinear: Single): Single;
 
   end;
 
@@ -111,6 +112,21 @@ begin
     TranslateMessage(LMsg);
     DispatchMessage(LMsg);
   end;
+end;
+
+class function TpxUtils.LogarithmicVolume(const ALinear: Single): Single;
+const
+  MinDb = -40.0; // Minimum dB attenuation (e.g., -40 dB = almost silence)
+var
+  L: Single;
+begin
+  L := EnsureRange(ALinear, 0.0, 1.0);
+  if L = 0 then
+    Result := 0
+  else if L = 1 then
+    Result := 1
+  else
+    Result := Power(10, (MinDb * (1 - L)) / 20);
 end;
 
 end.

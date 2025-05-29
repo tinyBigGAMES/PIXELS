@@ -251,7 +251,7 @@ type
 
     // Constants
     const
-      VIEWPORT_WIDTH = 800;
+      VIEWPORT_WIDTH =  800;
       VIEWPORT_HEIGHT = 600;
       WORLD_WIDTH = 4000;
       WORLD_HEIGHT = 600;

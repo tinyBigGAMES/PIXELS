@@ -49,7 +49,7 @@ program Testbed;
 uses
   System.SysUtils,
   UTestbed in 'UTestbed.pas',
-  PIXELS in '..\..\src\PIXELS.pas',
+  PIXELS.Core in '..\..\src\PIXELS.Core.pas',
   PIXELS.Audio in '..\..\src\PIXELS.Audio.pas',
   PIXELS.Console in '..\..\src\PIXELS.Console.pas',
   PIXELS.Deps in '..\..\src\PIXELS.Deps.pas',
@@ -70,7 +70,12 @@ uses
   UAsteroidsDemo in 'UAsteroidsDemo.pas',
   UTextureTintShaderDemo in 'UTextureTintShaderDemo.pas',
   UBuildZipDemo in 'UBuildZipDemo.pas',
-  UMenu in 'UMenu.pas';
+  UMenu in 'UMenu.pas',
+  PIXELS.Sprite in '..\..\src\PIXELS.Sprite.pas',
+  USpriteDemo in 'USpriteDemo.pas',
+  UVideoDemo in 'UVideoDemo.pas',
+  UCommon in 'UCommon.pas',
+  PIXELS in '..\..\src\PIXELS.pas';
 
 begin
   try

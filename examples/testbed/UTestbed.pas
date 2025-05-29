@@ -49,11 +49,12 @@ procedure RunTests();
 implementation
 
 uses
+  PIXELS.Deps,
   PIXELS.Utils,
   PIXELS.Console,
   PIXELS.Game,
   PIXELS.Graphics,
-  PIXELS,
+  PIXELS.Core,
   UBuildZipDemo,
   UTextureParallaxDemo,
   UParticleUniverseDemo,
@@ -62,6 +63,8 @@ uses
   UDefenderDemo,
   UAsteroidsDemo,
   UTextureTintShaderDemo,
+  USpriteDemo,
+  UVideoDemo,
   UMenu;
 
 procedure RunTests();
@@ -69,6 +72,7 @@ var
   LMenu: TMenu;
   LSelectedGame: TpxGameClass;
 begin
+
   LMenu := TMenu.Create();
   try
     LMenu.AddItem(TBuildZipDemo, 'Build Zip Demo <<--- RUN FIRST');
@@ -79,6 +83,8 @@ begin
     LMenu.AddItem(TAsteroidsDemo, 'Asteroids Demo');
     LMenu.AddItem(TTextureParallaxDemo, 'Texture Parallax Demo');
     LMenu.AddItem(TTextureTintShaderDemo, 'Texture Tint Shader Demo');
+    LMenu.AddItem(TSpriteDemo, 'Sprite Demo');
+    LMenu.AddItem(TVideoDemo, 'Video Demo');
 
     repeat
       TpxConsole.ClearScreen();
