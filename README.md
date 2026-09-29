@@ -54,6 +54,10 @@ The compiler builds `hello.pxl` into `bin/res/electron/win-x64/resources/app.asa
 ![PIXELS Infographic](media/Infographic.jpg)
 
 
+
+https://github.com/user-attachments/assets/62d6c1b3-fb99-4cbd-816d-8598c431c6b3
+
+
 <!-- Drag intro.mp4 into a GitHub issue or PR comment, then paste the generated user-attachments URL here -->
 
 </div>
